@@ -52,14 +52,8 @@ pub fn init() -> Result<(), String> {
         direction: None,
         speed: 5,
     };
-    let player2 = Player {
-        position: Point::new(100, 0),
-        sprite: Rect::new(0, 36, 32, 36),
-        direction: None,
-        speed: 10,
-    };
+
     player_list.push(player1);
-    //player_list.push(player2);
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut bg = Color {
@@ -182,5 +176,3 @@ fn render(
 
     Ok(())
 }
-#[cfg(test)]
-mod tests {}
