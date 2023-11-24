@@ -25,7 +25,7 @@ struct Player {
     speed: i32,
 }
 
-fn init() -> Result<(), String> {
+pub fn init() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
