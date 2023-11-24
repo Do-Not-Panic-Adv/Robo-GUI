@@ -26,6 +26,7 @@ struct Player {
 }
 
 pub fn init() -> Result<(), String> {
+    println!("etestst");
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
