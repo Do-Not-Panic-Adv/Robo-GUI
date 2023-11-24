@@ -43,7 +43,7 @@ pub fn init() -> Result<(), String> {
 
     let _image_context = sdl2::image::init(InitFlag::PNG | InitFlag::JPG)?;
     let texture_creator = canvas.texture_creator();
-    let texture = texture_creator.load_texture(Path::new("assets/reaper.png"))?;
+    let texture = texture_creator.load_texture(Path::new("./assets/reaper.png"))?;
 
     let mut player_list: Vec<Player> = vec![];
 
