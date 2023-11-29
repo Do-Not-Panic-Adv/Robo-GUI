@@ -3,9 +3,9 @@ use specs::{ReadStorage, System, WriteStorage};
 use crate::components::drawable_components::Position;
 use crate::components::movement_components::Velocity;
 
-pub(crate) struct RobotSystem;
+pub(crate) struct MoveRobotSystem;
 
-impl<'a> System<'a> for RobotSystem {
+impl<'a> System<'a> for MoveRobotSystem {
     //there are the resources requires for the execution of the system
     type SystemData = (WriteStorage<'a, Position>, ReadStorage<'a, Velocity>);
 

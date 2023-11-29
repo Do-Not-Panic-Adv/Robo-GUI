@@ -22,8 +22,7 @@ pub fn render(
             crate::components::drawable_components::SpriteType::Robot => 0,
             crate::components::drawable_components::SpriteType::Tile => 1,
         };
-
-        // Treat the center of the screen as the (0, 0) coordinate
+        //Puts the (0,0) coordinate int the center
         let screen_position = pos.0 + Point::new(width as i32 / 2, height as i32 / 2);
         let screen_rect = Rect::from_center(
             screen_position,

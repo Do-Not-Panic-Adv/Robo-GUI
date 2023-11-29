@@ -104,7 +104,7 @@ pub fn init() -> Result<(), String> {
         .build();
 
     let mut dispatcher = DispatcherBuilder::new()
-        .with(systems::robot_system::RobotSystem, "Movement", &[])
+        .with(systems::robot_system::MoveRobotSystem, "Movement", &[])
         .build();
 
     dispatcher.setup(&mut world);
@@ -138,55 +138,55 @@ pub fn init() -> Result<(), String> {
     Ok(())
 }
 
-fn robot_update(player_list: &mut Vec<Player>) {
-    for player in player_list.iter_mut() {
-        match player.direction.as_mut() {
-            Some(Direction::Up) => player.position += Point::new(0, -player.speed),
-            Some(Direction::Down) => player.position += Point::new(0, player.speed),
-            Some(Direction::Left) => player.position += Point::new(-player.speed, 0),
+//fn robot_update(player_list: &mut Vec<Player>) {
+//    for player in player_list.iter_mut() {
+//       match player.direction.as_mut() {
+//          Some(Direction::Up) => player.position += Point::new(0, -player.speed),
+//         Some(Direction::Down) => player.position += Point::new(0, player.speed),
+//        Some(Direction::Left) => player.position += Point::new(-player.speed, 0),
+//
+//           Some(Direction::Right) => player.position += Point::new(player.speed, 0),
+//          None => (),
+//     }
+//  }
+//}
 
-            Some(Direction::Right) => player.position += Point::new(player.speed, 0),
-            None => (),
-        }
-    }
-}
-fn render_robot(
-    canvas: &mut WindowCanvas,
-    color: Color,
-    texture: &Texture,
-    player_list: &Vec<Player>,
-) -> Result<(), String> {
-    canvas.set_draw_color(color);
+//fn render_robot(
+//   canvas: &mut WindowCanvas,
+//  color: Color,
+// texture: &Texture,
+//player_list: &Vec<Player>,
+//) -> Result<(), String> {
+//   canvas.set_draw_color(color);
+//
+//   let (width, height) = canvas.output_size()?;
+//
+//   for player in player_list.iter() {
+//      let screen_position = player.position + Point::new(width as i32 / 2, height as i32 / 2);
+//     let screen_rect = Rect::from_center(
+//        screen_position,
+//       player.sprite.width(),
+//      player.sprite.height(),
+// );
+// canvas.copy(texture, player.sprite, screen_rect)?;
+//}
+//Ok(())
+//}
 
-    let (width, height) = canvas.output_size()?;
-
-    for player in player_list.iter() {
-        let screen_position = player.position + Point::new(width as i32 / 2, height as i32 / 2);
-        let screen_rect = Rect::from_center(
-            screen_position,
-            player.sprite.width(),
-            player.sprite.height(),
-        );
-
-        canvas.copy(texture, player.sprite, screen_rect)?;
-    }
-
-    Ok(())
-}
-fn render_world(
-    canvas: &mut WindowCanvas,
-    texture: &Texture,
-    tile_list: &Vec<Tile>,
-) -> Result<(), String> {
-    let (width, height) = canvas.output_size()?;
-
-    for tile in tile_list.iter() {
-        let screen_position = tile.position + Point::new(width as i32 / 2, height as i32 / 2);
-        let screen_rect =
-            Rect::from_center(screen_position, tile.sprite.width(), tile.sprite.height());
-
-        canvas.copy(texture, tile.sprite, screen_rect)?;
-    }
-
-    Ok(())
-}
+//fn render_world(
+//   canvas: &mut WindowCanvas,
+//  texture: &Texture,
+// tile_list: &Vec<Tile>,
+//) -> Result<(), String> {
+//   let (width, height) = canvas.output_size()?;
+//
+//   for tile in tile_list.iter() {
+//      let screen_position = tile.position + Point::new(width as i32 / 2, height as i32 / 2);
+//     let screen_rect =
+//        Rect::from_center(screen_position, tile.sprite.width(), tile.sprite.height());
+//
+//       canvas.copy(texture, tile.sprite, screen_rect)?;
+//  }
+//
+//   Ok(())
+//}
