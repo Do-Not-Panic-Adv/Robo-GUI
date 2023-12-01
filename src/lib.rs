@@ -1,13 +1,14 @@
 use components::drawable_components::{Position, Sprite};
 use components::movement_components::Velocity;
-use robotics_lib::interface::Direction;
+
 use sdl2::event::Event;
 use sdl2::image::{InitFlag, LoadTexture};
 use sdl2::keyboard::Keycode;
-use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
-use sdl2::render::{Texture, WindowCanvas};
-use specs::{world, Builder, DispatcherBuilder, World, WorldExt};
+use specs::{Builder, DispatcherBuilder, World, WorldExt};
+
+use robotics_lib::interface::Direction;
+use robotics_lib::runner::{Runnable, Runner};
 
 use std::path::Path;
 use std::time::Duration;
@@ -19,18 +20,7 @@ mod systems;
 const HEIGHT: u32 = 600;
 const WIDTH: u32 = 800;
 
-struct Player {
-    position: Point,
-    sprite: Rect,
-    direction: Option<Direction>,
-    speed: i32,
-}
-struct Tile {
-    position: Point,
-    sprite: Rect,
-}
-
-pub fn init() -> Result<(), String> {
+pub fn init(run: &mut impl Runnable) -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
@@ -94,6 +84,7 @@ pub fn init() -> Result<(), String> {
         })
         .build();
 
+    //grass tile
     world
         .create_entity()
         .with(Position(Point::new(0, 0)))
@@ -131,6 +122,12 @@ pub fn init() -> Result<(), String> {
         //render_world(&mut canvas, &grass_texture, &tile_list)?;
         //render_robot(&mut canvas, bg, &reaper_texture, &player_list)?;
         renderer::render(&mut canvas, textures, world.system_data());
+
+        println!(
+            "Robotic robo pos: {} - {}",
+            run.get_coordinate().get_row(),
+            run.get_coordinate().get_col()
+        );
 
         //Time mgmt
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
