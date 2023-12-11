@@ -3,9 +3,9 @@ use specs::{ReadStorage, System, WriteStorage};
 use crate::components::drawable_components::Position;
 use crate::components::movement_components::Velocity;
 
-pub(crate) struct MoveRobotSystem;
+pub(crate) struct MoveSystem;
 
-impl<'a> System<'a> for MoveRobotSystem {
+impl<'a> System<'a> for MoveSystem {
     //there are the resources requires for the execution of the system
     type SystemData = (WriteStorage<'a, Position>, ReadStorage<'a, Velocity>);
 
@@ -18,7 +18,7 @@ impl<'a> System<'a> for MoveRobotSystem {
         //of them
 
         for (pos, vel) in (&mut pos, &vel).join() {
-            println!("ROBOT {:?} {:?}", pos, vel);
+            //println!("ROBOT {:?} {:?}", pos, vel);
             match vel.direction {
                 robotics_lib::interface::Direction::Up => pos.0.y -= vel.speed,
                 robotics_lib::interface::Direction::Down => pos.0.y -= vel.speed,
