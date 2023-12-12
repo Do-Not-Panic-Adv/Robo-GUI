@@ -1,4 +1,5 @@
-use specs::{ReadStorage, System, WriteStorage};
+use robotics_lib::interface::Direction;
+use specs::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 
 use crate::components::drawable_components::Position;
 use crate::components::movement_components::Velocity;
@@ -18,13 +19,39 @@ impl<'a> System<'a> for MoveSystem {
         //of them
 
         for (pos, vel) in (&mut pos, &vel).join() {
-            //println!("ROBOT {:?} {:?}", pos, vel);
-            match vel.direction {
-                robotics_lib::interface::Direction::Up => pos.0.y -= vel.speed,
-                robotics_lib::interface::Direction::Down => pos.0.y -= vel.speed,
-                robotics_lib::interface::Direction::Left => pos.0.x -= vel.speed,
-                robotics_lib::interface::Direction::Right => pos.0.x += vel.speed,
+            match &vel.direction {
+                Some(d) => match d {
+                    robotics_lib::interface::Direction::Up => pos.0.y -= vel.speed,
+                    robotics_lib::interface::Direction::Down => pos.0.y += vel.speed,
+                    robotics_lib::interface::Direction::Left => pos.0.x -= vel.speed,
+                    robotics_lib::interface::Direction::Right => pos.0.x += vel.speed,
+                },
+                None => return,
             }
         }
     }
+}
+
+pub(crate) struct ChangeDirectionSystem;
+impl<'a> System<'a> for ChangeDirectionSystem {
+    type SystemData = (
+        ReadExpect<'a, Option<Direction>>,
+        WriteStorage<'a, Velocity>,
+    );
+
+    fn run(&mut self, mut data: Self::SystemData) {
+        let dir = &*data.0;
+        for vel in (&mut data.1).join() {
+            vel.direction = Some(dir.clone().unwrap())
+        }
+    }
+}
+
+type SystemData<'a> = WriteStorage<'a, Velocity>;
+
+//const RENDER_ORDER: Vec<TextureType> = [TextureType::Tile(d)];
+
+pub(crate) fn change_direction(dir: Direction, data: SystemData) -> Result<(), String> {
+    //for vel in (&data.0, &data.1).join() {}
+    Ok(())
 }

@@ -1,6 +1,8 @@
 use sdl2::rect::{Point, Rect};
 use specs::{Component, VecStorage};
 
+use crate::texture_manager::TextureType;
+
 #[derive(Debug)]
 pub(crate) enum SpriteType {
     Robot,
@@ -17,7 +19,7 @@ impl Component for Position {
 #[derive(Debug)]
 pub struct Sprite {
     pub(crate) region: Rect,
-    pub(crate) sprite_type: SpriteType,
+    pub(crate) texture_type: TextureType,
 }
 
 impl Component for Sprite {

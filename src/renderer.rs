@@ -1,19 +1,20 @@
-use std::collections::HashMap;
+use crate::components::drawable_components::{Position, Sprite};
+use crate::texture_manager::{TextureType, Textures};
 
-use crate::components::drawable_components::{Position, Sprite, SpriteType};
-use crate::texture_manager::TextureType;
-
+use robotics_lib::world::tile::TileType;
 use sdl2::rect::{Point, Rect};
-use sdl2::render::{Texture, WindowCanvas};
+use sdl2::render::WindowCanvas;
 use specs::prelude::*;
 use specs::ReadStorage;
 
 //this Extracts data from every entity that has a Position ans Sprite component
-pub type SystemData<'a> = (ReadStorage<'a, Position>, ReadStorage<'a, Sprite>);
+type SystemData<'a> = (ReadStorage<'a, Position>, ReadStorage<'a, Sprite>);
 
-pub fn render(
+//const RENDER_ORDER: Vec<TextureType> = [TextureType::Tile(d)];
+
+pub(crate) fn render(
     canvas: &mut WindowCanvas,
-    textures: &HashMap<TextureType, Box<Vec<Texture>>>,
+    textures: &Textures,
     data: SystemData,
 ) -> Result<(), String> {
     let (width, height) = canvas.output_size()?;
@@ -27,7 +28,7 @@ pub fn render(
             sprite.region.height(),
         );
         canvas.copy(
-            &textures.get(&TextureType::Robot).unwrap()[0],
+            &textures.0.get(&sprite.texture_type).unwrap()[0],
             sprite.region,
             screen_rect,
         )?;

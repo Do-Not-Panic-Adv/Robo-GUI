@@ -4,7 +4,7 @@ use specs::{Component, VecStorage};
 #[derive(Debug)]
 pub struct Velocity {
     pub(crate) speed: i32,
-    pub(crate) direction: Direction,
+    pub(crate) direction: Option<Direction>,
 }
 
 impl Component for Velocity {

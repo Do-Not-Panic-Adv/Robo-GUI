@@ -1,8 +1,31 @@
-use std::hash::Hash;
+use std::{collections::HashMap, hash::Hash, path::Path};
 
 use robotics_lib::world::tile::{Content, TileType};
-use sdl2::render::Texture;
+use sdl2::{
+    rect::Rect,
+    render::{Texture, TextureCreator},
+    video::WindowContext,
+};
 
+pub(crate) struct Textures<'texture>(pub HashMap<TextureType, Vec<&'texture Texture<'texture>>>);
+
+pub(crate) struct SpriteTable(pub HashMap<TextureType, Rect>);
+impl SpriteTable {
+    pub fn new() -> Self {
+        SpriteTable(HashMap::new())
+    }
+}
+
+impl<'texture> Textures<'texture> {
+    pub fn new() -> Textures<'texture> {
+        Textures(HashMap::new())
+    }
+    pub(crate) fn add_texture(&mut self, texture_type: TextureType, texture: &'texture Texture) {
+        self.0.insert(texture_type, vec![texture.clone()]);
+    }
+}
+
+#[derive(Debug)]
 pub(crate) enum TextureType {
     Robot,
     Tile(TileType),
