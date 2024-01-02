@@ -1,7 +1,8 @@
 use crate::components::drawable_components::{Position, Sprite};
-use crate::texture_manager::{TextureType, Textures};
+use crate::texture_manager::Textures;
 
-use robotics_lib::world::tile::TileType;
+use robotics_lib::interface::Direction;
+use robotics_lib::world::coordinates::Coordinate;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
@@ -19,9 +20,12 @@ pub(crate) fn render(
 ) -> Result<(), String> {
     let (width, height) = canvas.output_size()?;
 
+    //USE MARKER COMPONENT TO IMPLEMENT SEPARATE RENDERER FOR THE ROBOT AND TILES
+
     for (pos, sprite) in (&data.0, &data.1).join() {
         //Puts the (0,0) coordinate int the center
         let screen_position = pos.0 + Point::new(width as i32 / 2, height as i32 / 2);
+
         let screen_rect = Rect::from_center(
             screen_position,
             sprite.region.width(),

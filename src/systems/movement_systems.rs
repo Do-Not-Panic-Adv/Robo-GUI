@@ -1,5 +1,5 @@
 use robotics_lib::interface::Direction;
-use specs::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{Join, ReadExpect, ReadStorage, System, WriteStorage};
 
 use crate::components::drawable_components::Position;
 use crate::components::movement_components::Velocity;
@@ -13,7 +13,6 @@ impl<'a> System<'a> for MoveSystem {
     fn run(&mut self, (mut pos, vel): Self::SystemData) {
         //this system will only work with
         //entitis that have both a Position and a Velocity components
-        use specs::Join;
 
         //the join combines multiple component storages, so we access only entities that use both
         //of them
@@ -42,16 +41,8 @@ impl<'a> System<'a> for ChangeDirectionSystem {
     fn run(&mut self, mut data: Self::SystemData) {
         let dir = &*data.0;
         for vel in (&mut data.1).join() {
-            vel.direction = Some(dir.clone().unwrap())
+            println!("GUIIIII2 {:?}", dir.clone().unwrap());
+            vel.direction = dir.clone()
         }
     }
-}
-
-type SystemData<'a> = WriteStorage<'a, Velocity>;
-
-//const RENDER_ORDER: Vec<TextureType> = [TextureType::Tile(d)];
-
-pub(crate) fn change_direction(dir: Direction, data: SystemData) -> Result<(), String> {
-    //for vel in (&data.0, &data.1).join() {}
-    Ok(())
 }

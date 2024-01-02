@@ -1,6 +1,7 @@
 use components::drawable_components::{Position, Sprite};
 use components::movement_components::Velocity;
 
+use robotics_lib::interface::Direction;
 use robotics_lib::world::tile::{Content, Tile, TileType};
 use sdl2::render::{Canvas, Texture, TextureCreator};
 use sdl2::video::{Window, WindowContext};
@@ -13,10 +14,8 @@ use sdl2::keyboard::Keycode;
 use sdl2::rect::{Point, Rect};
 use specs::{Builder, Dispatcher, DispatcherBuilder, World, WorldExt};
 
-use robotics_lib::interface::Direction;
 use texture_manager::{SpriteTable, Textures};
 
-use std::collections::HashMap;
 use std::path::Path;
 use std::time::Duration;
 
@@ -30,12 +29,15 @@ mod texture_manager;
 const HEIGHT: u32 = 720;
 const WIDTH: u32 = 1280;
 
+const TILE_SIZE: i32 = 32;
+
 pub struct MainState<'window> {
     sdl_context: Sdl,
     //window: Window,
     canvas: Canvas<Window>,
     game_world: World,
     robot_world: World,
+    content_world: World,
     dispatcher: Dispatcher<'window, 'window>,
     //textures: HashMap<TextureType, Box<Vec<Texture<'window>>>>,
     texture_creator: TextureCreator<WindowContext>,
@@ -71,6 +73,14 @@ impl<'window> MainState<'window> {
         robot_world.register::<Position>();
         robot_world.register::<Sprite>();
 
+        let mut content_world = World::new();
+        content_world.register::<Position>();
+        content_world.register::<Sprite>();
+
+        robot_world.insert(Some(Direction::Right));
+        //game_world.insert(Some(Direction::Right));
+        //content_world.insert(Some(Direction::Right));
+
         //robot
         robot_world
             .create_entity()
@@ -90,7 +100,7 @@ impl<'window> MainState<'window> {
             .create_entity()
             .with(Position(Point::new(0, 0)))
             .with(Sprite {
-                region: Rect::new(32, 32 * 3, 32, 32),
+                region: Rect::new(TILE_SIZE, TILE_SIZE * 3, TILE_SIZE as u32, TILE_SIZE as u32),
                 texture_type: TextureType::Tile(TileType::Grass),
             })
             .build();
@@ -110,15 +120,34 @@ impl<'window> MainState<'window> {
             .insert(TextureType::Robot, Rect::new(0, 0, 26, 39));
         sprite_table.0.insert(
             TextureType::Tile(TileType::Grass),
-            Rect::new(32, 32 * 3, 32, 32),
+            Rect::new(
+                TILE_SIZE * 1,
+                TILE_SIZE * 1,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
         );
         sprite_table.0.insert(
             TextureType::Tile(TileType::Sand),
-            Rect::new(0, 32 * 6, 32, 32),
+            Rect::new(
+                TILE_SIZE * 1,
+                TILE_SIZE * 2,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
         );
         sprite_table.0.insert(
             TextureType::Content(Content::Rock(0)),
-            Rect::new(0, 32 * 15, 32, 32),
+            Rect::new(0, TILE_SIZE * 15, TILE_SIZE as u32, TILE_SIZE as u32),
+        );
+        sprite_table.0.insert(
+            TextureType::Tile(TileType::Street),
+            Rect::new(
+                TILE_SIZE * 2,
+                TILE_SIZE * 2,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
         );
 
         Ok(MainState {
@@ -126,6 +155,7 @@ impl<'window> MainState<'window> {
             canvas,
             game_world,
             robot_world,
+            content_world,
             dispatcher,
             texture_creator,
             sprite_table,
@@ -147,6 +177,24 @@ impl<'window> MainState<'window> {
                 .join("assets")
                 .join("bardo.png"),
         )?;
+        let sand_texture = self.texture_creator.load_texture(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("assets")
+                .join("tiles")
+                .join("grass.png"),
+        )?;
+        let rock_texture = self.texture_creator.load_texture(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("assets")
+                .join("tiles")
+                .join("props.png"),
+        )?;
+        let road_texture = self.texture_creator.load_texture(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("assets")
+                .join("tiles")
+                .join("street.png"),
+        )?;
 
         let _ = textures
             .add_texture(TextureType::Tile(TileType::Grass), &grass_texture)
@@ -154,9 +202,18 @@ impl<'window> MainState<'window> {
         let _ = textures
             .add_texture(TextureType::Robot, &robot_texture)
             .clone();
+        let _ = textures
+            .add_texture(TextureType::Tile(TileType::Sand), &sand_texture)
+            .clone();
+        let _ = textures
+            .add_texture(TextureType::Content(Content::Rock(0)), &rock_texture)
+            .clone();
+        let _ = textures
+            .add_texture(TextureType::Tile(TileType::Street), &road_texture)
+            .clone();
 
-        let mut event_pump = self.sdl_context.event_pump().unwrap();
         'running: loop {
+            let mut event_pump = self.sdl_context.event_pump().unwrap();
             //Event handling
             for event in event_pump.poll_iter() {
                 match event {
@@ -165,12 +222,6 @@ impl<'window> MainState<'window> {
                         keycode: Some(Keycode::Escape),
                         ..
                     } => break 'running,
-                    Event::KeyDown {
-                        keycode: Some(Keycode::Down),
-                        ..
-                    } => {
-                        println!("down");
-                    }
                     _ => {}
                 }
             }
@@ -178,6 +229,7 @@ impl<'window> MainState<'window> {
             //UPDATE
             self.dispatcher.dispatch(&self.robot_world);
             self.game_world.maintain();
+            self.content_world.maintain();
             self.robot_world.maintain();
 
             //chiamare più volte il rendere per ogni tipo di cosa da renderizzare
@@ -185,18 +237,24 @@ impl<'window> MainState<'window> {
             self.canvas.clear();
 
             let _ = renderer::render(&mut self.canvas, &textures, self.game_world.system_data());
+            let _ = renderer::render(
+                &mut self.canvas,
+                &textures,
+                self.content_world.system_data(),
+            );
             let _ = renderer::render(&mut self.canvas, &textures, self.robot_world.system_data());
 
             self.canvas.present();
 
-            //Time mgmt
             std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
         }
+
         Ok(())
     }
 
     pub fn update_world(&mut self, world: Vec<Vec<Option<Tile>>>) {
         self.game_world.delete_all();
+        self.content_world.delete_all();
         let mut y = 0;
         let mut x;
 
@@ -207,7 +265,7 @@ impl<'window> MainState<'window> {
                     Some(t) => {
                         self.game_world
                             .create_entity()
-                            .with(Position(Point::new(x * 32, y * 32)))
+                            .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                             .with(Sprite {
                                 region: *self
                                     .sprite_table
@@ -220,9 +278,9 @@ impl<'window> MainState<'window> {
                         match t.content {
                             Content::None => {}
                             Content::Rock(_) => {
-                                self.game_world
+                                self.content_world
                                     .create_entity()
-                                    .with(Position(Point::new(x * 32, y * 32)))
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
                                         region: *self
                                             .sprite_table
@@ -236,17 +294,40 @@ impl<'window> MainState<'window> {
                             _ => {}
                         }
                     }
-                    None => print!(" ######### "),
+                    None => {}
                 }
                 x += 1;
             }
             y += 1;
-            println!();
         }
     }
 
-    pub fn update_robot(&mut self, dir: robotics_lib::interface::Direction) {
-        self.robot_world.insert(Some(dir));
+    pub fn update_robot(
+        &mut self,
+        coords: Option<(usize, usize)>,
+        last_coords: Option<(usize, usize)>,
+    ) {
+        //usare le coordinate per calcolare la direzione
+        match coords {
+            Some(coords) => {
+                let last = last_coords.unwrap();
+                let dir;
+                if (coords.0 as i32 - last.0 as i32) > 0 {
+                    dir = Direction::Down;
+                } else if (coords.0 as i32 - last.0 as i32) > 0 {
+                    dir = Direction::Up;
+                } else if (coords.1 as i32 - last.1 as i32) > 0 {
+                    dir = Direction::Right;
+                } else {
+                    dir = Direction::Left;
+                }
+                println!("GUII {:?}", dir.clone());
+
+                self.robot_world.insert(Some(dir.clone()));
+                //self.game_world.insert(dir.clone());
+            }
+            None => {}
+        };
     }
 
     pub fn tick(&mut self) -> Result<(), String> {
@@ -276,6 +357,12 @@ impl<'window> MainState<'window> {
                 .join("tiles")
                 .join("props.png"),
         )?;
+        let road_texture = self.texture_creator.load_texture(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("assets")
+                .join("tiles")
+                .join("street.png"),
+        )?;
 
         let _ = textures
             .add_texture(TextureType::Tile(TileType::Grass), &grass_texture)
@@ -289,8 +376,11 @@ impl<'window> MainState<'window> {
         let _ = textures
             .add_texture(TextureType::Content(Content::Rock(0)), &rock_texture)
             .clone();
+        let _ = textures
+            .add_texture(TextureType::Tile(TileType::Street), &road_texture)
+            .clone();
 
-        for _i in 0..32 {
+        for _i in 0..TILE_SIZE {
             let mut event_pump = self.sdl_context.event_pump().unwrap();
             //Event handling
             for event in event_pump.poll_iter() {
@@ -300,12 +390,6 @@ impl<'window> MainState<'window> {
                         keycode: Some(Keycode::Escape),
                         ..
                     } => {}
-                    Event::KeyDown {
-                        keycode: Some(Keycode::Down),
-                        ..
-                    } => {
-                        println!("down");
-                    }
                     _ => {}
                 }
             }
@@ -313,6 +397,7 @@ impl<'window> MainState<'window> {
             //UPDATE
             self.dispatcher.dispatch(&self.robot_world);
             self.game_world.maintain();
+            self.content_world.maintain();
             self.robot_world.maintain();
 
             //chiamare più volte il rendere per ogni tipo di cosa da renderizzare
@@ -320,6 +405,11 @@ impl<'window> MainState<'window> {
             self.canvas.clear();
 
             let _ = renderer::render(&mut self.canvas, &textures, self.game_world.system_data());
+            let _ = renderer::render(
+                &mut self.canvas,
+                &textures,
+                self.content_world.system_data(),
+            );
             let _ = renderer::render(&mut self.canvas, &textures, self.robot_world.system_data());
 
             self.canvas.present();
