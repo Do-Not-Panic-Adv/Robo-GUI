@@ -3,7 +3,6 @@ use components::movement_components::Velocity;
 
 use robotics_lib::interface::Direction;
 use robotics_lib::world::tile::{Content, Tile, TileType};
-use sdl2::mouse::MouseState;
 use sdl2::render::{Canvas, Texture, TextureCreator};
 use sdl2::video::{Window, WindowContext};
 use sdl2::Sdl;
@@ -27,8 +26,8 @@ mod renderer;
 mod systems;
 mod texture_manager;
 
-const HEIGHT: u32 = 720;
-const WIDTH: u32 = 1280;
+const HEIGHT: u32 = 480;
+const WIDTH: u32 = 800;
 
 const TILE_SIZE: i32 = 32;
 static ZOOM_LEVEL: i32 = 1;
@@ -41,9 +40,10 @@ pub struct MainState<'window> {
     robot_world: World,
     content_world: World,
     dispatcher: Dispatcher<'window, 'window>,
-    //textures: HashMap<TextureType, Box<Vec<Texture<'window>>>>,
+    //texture: Texture<'window>,
     texture_creator: TextureCreator<WindowContext>,
     sprite_table: SpriteTable,
+
     screen_offset: (i32, i32), //maybe move this outside of the mainstate
 }
 
@@ -161,107 +161,6 @@ impl<'window> MainState<'window> {
         })
     }
 
-    pub fn start(&mut self) -> Result<(), String> {
-        let mut textures = Textures::new();
-
-        let grass_texture = self.texture_creator.load_texture(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("tiles")
-                .join("grass.png"),
-        )?;
-
-        let robot_texture = self.texture_creator.load_texture(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("bardo.png"),
-        )?;
-        let sand_texture = self.texture_creator.load_texture(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("tiles")
-                .join("grass.png"),
-        )?;
-        let rock_texture = self.texture_creator.load_texture(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("tiles")
-                .join("props.png"),
-        )?;
-        let road_texture = self.texture_creator.load_texture(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("tiles")
-                .join("street.png"),
-        )?;
-
-        let _ = textures
-            .add_texture(TextureType::Tile(TileType::Grass), &grass_texture)
-            .clone();
-        let _ = textures
-            .add_texture(TextureType::Robot, &robot_texture)
-            .clone();
-        let _ = textures
-            .add_texture(TextureType::Tile(TileType::Sand), &sand_texture)
-            .clone();
-        let _ = textures
-            .add_texture(TextureType::Content(Content::Rock(0)), &rock_texture)
-            .clone();
-        let _ = textures
-            .add_texture(TextureType::Tile(TileType::Street), &road_texture)
-            .clone();
-
-        'running: loop {
-            let mut event_pump = self.sdl_context.event_pump().unwrap();
-            //Event handling
-            for event in event_pump.poll_iter() {
-                match event {
-                    Event::Quit { .. }
-                    | Event::KeyDown {
-                        keycode: Some(Keycode::Escape),
-                        ..
-                    } => break 'running,
-                    _ => {}
-                }
-            }
-
-            //UPDATE
-            self.dispatcher.dispatch(&self.robot_world);
-            self.game_world.maintain();
-            self.content_world.maintain();
-            self.robot_world.maintain();
-
-            //chiamare più volte il rendere per ogni tipo di cosa da renderizzare
-            //
-            self.canvas.clear();
-
-            let _ = renderer::render(
-                &mut self.canvas,
-                &textures,
-                self.game_world.system_data(),
-                self.screen_offset,
-            );
-            let _ = renderer::render(
-                &mut self.canvas,
-                &textures,
-                self.content_world.system_data(),
-                self.screen_offset,
-            );
-            let _ = renderer::render(
-                &mut self.canvas,
-                &textures,
-                self.robot_world.system_data(),
-                self.screen_offset,
-            );
-
-            self.canvas.present();
-
-            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
-        }
-
-        Ok(())
-    }
-
     pub fn update_world(&mut self, world: Vec<Vec<Option<Tile>>>) {
         self.game_world.delete_all();
         self.content_world.delete_all();
@@ -347,55 +246,27 @@ impl<'window> MainState<'window> {
     pub fn tick(&mut self) -> Result<(), String> {
         let mut textures = Textures::new();
 
-        let grass_texture = self.texture_creator.load_texture(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("tiles")
-                .join("grass.png"),
-        )?;
+        //let grass_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("tiles") .join("grass.png"),)?;
+        //let robot_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("bardo.png"),)?;
+        //let sand_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("tiles") .join("grass.png"),)?;
+        //let rock_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("tiles") .join("props.png"),)?;
+        //let road_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("tiles") .join("street.png"),)?;
 
-        let robot_texture = self.texture_creator.load_texture(
+        //let _ = textures .add_texture(TextureType::Tile(TileType::Grass), &grass_texture) .clone();
+        //let _ = textures .add_texture(TextureType::Robot, &robot_texture) .clone();
+        //let _ = textures .add_texture(TextureType::Tile(TileType::Sand), &sand_texture) .clone();
+        //let _ = textures .add_texture(TextureType::Content(Content::Rock(0)), &rock_texture) .clone();
+        //let _ = textures .add_texture(TextureType::Tile(TileType::Street), &road_texture) .clone();
+        //
+        let texture = self.texture_creator.load_texture(
             Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("assets")
                 .join("bardo.png"),
         )?;
-        let sand_texture = self.texture_creator.load_texture(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("tiles")
-                .join("grass.png"),
-        )?;
-        let rock_texture = self.texture_creator.load_texture(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("tiles")
-                .join("props.png"),
-        )?;
-        let road_texture = self.texture_creator.load_texture(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("tiles")
-                .join("street.png"),
-        )?;
-
-        let _ = textures
-            .add_texture(TextureType::Tile(TileType::Grass), &grass_texture)
-            .clone();
-        let _ = textures
-            .add_texture(TextureType::Robot, &robot_texture)
-            .clone();
-        let _ = textures
-            .add_texture(TextureType::Tile(TileType::Sand), &sand_texture)
-            .clone();
-        let _ = textures
-            .add_texture(TextureType::Content(Content::Rock(0)), &rock_texture)
-            .clone();
-        let _ = textures
-            .add_texture(TextureType::Tile(TileType::Street), &road_texture)
-            .clone();
 
         for _i in 0..TILE_SIZE {
             let mut event_pump = self.sdl_context.event_pump().unwrap();
+
             //Event handling
             for event in event_pump.poll_iter() {
                 match event {
@@ -465,19 +336,19 @@ impl<'window> MainState<'window> {
 
             let _ = renderer::render(
                 &mut self.canvas,
-                &textures,
+                &texture,
                 self.game_world.system_data(),
                 self.screen_offset,
             );
             let _ = renderer::render(
                 &mut self.canvas,
-                &textures,
+                &texture,
                 self.content_world.system_data(),
                 self.screen_offset,
             );
             let _ = renderer::render(
                 &mut self.canvas,
-                &textures,
+                &texture,
                 self.robot_world.system_data(),
                 self.screen_offset,
             );

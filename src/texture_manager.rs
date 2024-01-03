@@ -1,11 +1,7 @@
-use std::{collections::HashMap, hash::Hash, path::Path};
+use std::{collections::HashMap, hash::Hash};
 
 use robotics_lib::world::tile::{Content, TileType};
-use sdl2::{
-    rect::Rect,
-    render::{Texture, TextureCreator},
-    video::WindowContext,
-};
+use sdl2::{rect::Rect, render::Texture};
 
 pub(crate) struct Textures<'texture>(pub HashMap<TextureType, Vec<&'texture Texture<'texture>>>);
 

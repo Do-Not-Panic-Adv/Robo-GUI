@@ -3,7 +3,7 @@ use crate::texture_manager::Textures;
 use crate::ZOOM_LEVEL;
 
 use sdl2::rect::{Point, Rect};
-use sdl2::render::WindowCanvas;
+use sdl2::render::{Texture, WindowCanvas};
 use specs::prelude::*;
 use specs::ReadStorage;
 
@@ -12,7 +12,7 @@ type SystemData<'a> = (ReadStorage<'a, Position>, ReadStorage<'a, Sprite>);
 
 pub(crate) fn render(
     canvas: &mut WindowCanvas,
-    textures: &Textures,
+    texture: &Texture,
     data: SystemData,
     offset: (i32, i32),
 ) -> Result<(), String> {
@@ -30,11 +30,7 @@ pub(crate) fn render(
             sprite.region.width(),
             sprite.region.height(),
         );
-        canvas.copy(
-            &textures.0.get(&sprite.texture_type).unwrap()[0],
-            sprite.region,
-            screen_rect,
-        )?;
+        canvas.copy(&texture, sprite.region, screen_rect)?;
     }
 
     Ok(())
