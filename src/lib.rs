@@ -3,6 +3,7 @@ use components::movement_components::Velocity;
 
 use robotics_lib::interface::Direction;
 use robotics_lib::world::tile::{Content, Tile, TileType};
+use sdl2::mouse::MouseState;
 use sdl2::render::{Canvas, Texture, TextureCreator};
 use sdl2::video::{Window, WindowContext};
 use sdl2::Sdl;
@@ -30,6 +31,7 @@ const HEIGHT: u32 = 720;
 const WIDTH: u32 = 1280;
 
 const TILE_SIZE: i32 = 32;
+static ZOOM_LEVEL: i32 = 1;
 
 pub struct MainState<'window> {
     sdl_context: Sdl,
@@ -42,6 +44,7 @@ pub struct MainState<'window> {
     //textures: HashMap<TextureType, Box<Vec<Texture<'window>>>>,
     texture_creator: TextureCreator<WindowContext>,
     sprite_table: SpriteTable,
+    screen_offset: (i32, i32), //maybe move this outside of the mainstate
 }
 
 impl<'window> MainState<'window> {
@@ -81,7 +84,7 @@ impl<'window> MainState<'window> {
         //game_world.insert(Some(Direction::Right));
         //content_world.insert(Some(Direction::Right));
 
-        //robot
+        //robot entity
         robot_world
             .create_entity()
             .with(Position(Point::new(0, 0)))
@@ -95,16 +98,10 @@ impl<'window> MainState<'window> {
             })
             .build();
 
-        //grass tile
-        game_world
-            .create_entity()
-            .with(Position(Point::new(0, 0)))
-            .with(Sprite {
-                region: Rect::new(TILE_SIZE, TILE_SIZE * 3, TILE_SIZE as u32, TILE_SIZE as u32),
-                texture_type: TextureType::Tile(TileType::Grass),
-            })
-            .build();
-
+        //grass entity
+        //Creata automaticamente quando si aggiorna il mondo
+        //game_world .create_entity() .with(Position(Point::new(0, 0))) .with(Sprite { region: Rect::new(TILE_SIZE, TILE_SIZE * 3, TILE_SIZE as u32, TILE_SIZE as u32), texture_type: TextureType::Tile(TileType::Grass), }) .build();
+        //
         //chiama i system relativi al robot
         let mut dispatcher = DispatcherBuilder::new()
             .with(ChangeDirectionSystem, "ChangeDir", &[])
@@ -150,6 +147,7 @@ impl<'window> MainState<'window> {
             ),
         );
 
+        let screen_offset = (0, 0);
         Ok(MainState {
             sdl_context,
             canvas,
@@ -159,6 +157,7 @@ impl<'window> MainState<'window> {
             dispatcher,
             texture_creator,
             sprite_table,
+            screen_offset,
         })
     }
 
@@ -236,13 +235,24 @@ impl<'window> MainState<'window> {
             //
             self.canvas.clear();
 
-            let _ = renderer::render(&mut self.canvas, &textures, self.game_world.system_data());
+            let _ = renderer::render(
+                &mut self.canvas,
+                &textures,
+                self.game_world.system_data(),
+                self.screen_offset,
+            );
             let _ = renderer::render(
                 &mut self.canvas,
                 &textures,
                 self.content_world.system_data(),
+                self.screen_offset,
             );
-            let _ = renderer::render(&mut self.canvas, &textures, self.robot_world.system_data());
+            let _ = renderer::render(
+                &mut self.canvas,
+                &textures,
+                self.robot_world.system_data(),
+                self.screen_offset,
+            );
 
             self.canvas.present();
 
@@ -265,7 +275,9 @@ impl<'window> MainState<'window> {
                     Some(t) => {
                         self.game_world
                             .create_entity()
-                            .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                            .with(Position(
+                                Point::new(x * TILE_SIZE, y * TILE_SIZE).scale(ZOOM_LEVEL),
+                            ))
                             .with(Sprite {
                                 region: *self
                                     .sprite_table
@@ -280,7 +292,9 @@ impl<'window> MainState<'window> {
                             Content::Rock(_) => {
                                 self.content_world
                                     .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Position(
+                                        Point::new(x * TILE_SIZE, y * TILE_SIZE).scale(ZOOM_LEVEL),
+                                    ))
                                     .with(Sprite {
                                         region: *self
                                             .sprite_table
@@ -390,6 +404,51 @@ impl<'window> MainState<'window> {
                         keycode: Some(Keycode::Escape),
                         ..
                     } => {}
+                    Event::MouseWheel { y: 1, .. } => {
+                        //zoom in
+                    }
+                    Event::MouseWheel { y: -1, .. } => {
+                        //zoom out
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::Left),
+                        repeat: false,
+                        ..
+                    } => {
+                        self.screen_offset.0 += 10;
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::Right),
+                        repeat: false,
+                        ..
+                    } => {
+                        self.screen_offset.0 -= 10;
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::Down),
+                        repeat: false,
+                        ..
+                    } => {
+                        self.screen_offset.1 -= 10;
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::Up),
+                        repeat: false,
+                        ..
+                    } => {
+                        self.screen_offset.1 += 10;
+                    }
+                    Event::MouseMotion {
+                        mousestate,
+                        xrel,
+                        yrel,
+                        ..
+                    } => {
+                        if mousestate.right() {
+                            self.screen_offset.0 += xrel;
+                            self.screen_offset.1 += yrel;
+                        }
+                    }
                     _ => {}
                 }
             }
@@ -404,13 +463,24 @@ impl<'window> MainState<'window> {
             //
             self.canvas.clear();
 
-            let _ = renderer::render(&mut self.canvas, &textures, self.game_world.system_data());
+            let _ = renderer::render(
+                &mut self.canvas,
+                &textures,
+                self.game_world.system_data(),
+                self.screen_offset,
+            );
             let _ = renderer::render(
                 &mut self.canvas,
                 &textures,
                 self.content_world.system_data(),
+                self.screen_offset,
             );
-            let _ = renderer::render(&mut self.canvas, &textures, self.robot_world.system_data());
+            let _ = renderer::render(
+                &mut self.canvas,
+                &textures,
+                self.robot_world.system_data(),
+                self.screen_offset,
+            );
 
             self.canvas.present();
 
