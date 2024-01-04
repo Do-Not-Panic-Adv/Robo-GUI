@@ -93,7 +93,7 @@ impl<'window> MainState<'window> {
                 direction: None,
             })
             .with(Sprite {
-                region: Rect::new(0, 0, 26, 39),
+                region: Rect::new(0, TILE_SIZE * 2, TILE_SIZE as u32, TILE_SIZE as u32),
                 texture_type: TextureType::Robot,
             })
             .build();
@@ -112,36 +112,54 @@ impl<'window> MainState<'window> {
 
         let mut sprite_table = SpriteTable::new();
 
-        sprite_table
-            .0
-            .insert(TextureType::Robot, Rect::new(0, 0, 26, 39));
+        sprite_table.0.insert(
+            TextureType::Robot,
+            Rect::new(TILE_SIZE * 2, 0, TILE_SIZE as u32, TILE_SIZE as u32),
+        );
         sprite_table.0.insert(
             TextureType::Tile(TileType::Grass),
             Rect::new(
-                TILE_SIZE * 1,
-                TILE_SIZE * 1,
+                TILE_SIZE * 0,
+                TILE_SIZE * 0,
                 TILE_SIZE as u32,
                 TILE_SIZE as u32,
             ),
         );
+
         sprite_table.0.insert(
             TextureType::Tile(TileType::Sand),
             Rect::new(
-                TILE_SIZE * 1,
+                TILE_SIZE * 5,
+                TILE_SIZE * 0,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+
+        sprite_table.0.insert(
+            TextureType::Content(Content::Rock(0)),
+            Rect::new(
                 TILE_SIZE * 2,
+                TILE_SIZE * 0,
                 TILE_SIZE as u32,
                 TILE_SIZE as u32,
             ),
         );
         sprite_table.0.insert(
-            TextureType::Content(Content::Rock(0)),
-            Rect::new(0, TILE_SIZE * 15, TILE_SIZE as u32, TILE_SIZE as u32),
+            TextureType::Content(Content::Tree(0)),
+            Rect::new(
+                TILE_SIZE * 0,
+                TILE_SIZE * 1,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
         );
+
         sprite_table.0.insert(
             TextureType::Tile(TileType::Street),
             Rect::new(
-                TILE_SIZE * 2,
-                TILE_SIZE * 2,
+                TILE_SIZE * 1,
+                TILE_SIZE * 0,
                 TILE_SIZE as u32,
                 TILE_SIZE as u32,
             ),
@@ -186,7 +204,7 @@ impl<'window> MainState<'window> {
                                 texture_type: TextureType::Tile(t.tile_type),
                             })
                             .build();
-                        match t.content {
+                        match &t.content {
                             Content::None => {}
                             Content::Rock(_) => {
                                 self.content_world
@@ -204,7 +222,35 @@ impl<'window> MainState<'window> {
                                     })
                                     .build();
                             }
-                            _ => {}
+                            Content::Tree(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(
+                                        Point::new(x * TILE_SIZE, y * TILE_SIZE).scale(ZOOM_LEVEL),
+                                    ))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Tree(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Tree(0)),
+                                    })
+                                    .build();
+                            }
+                            Content::Garbage(_) => todo!(),
+                            Content::Fire => todo!(),
+                            Content::Coin(_) => todo!(),
+                            Content::Bin(_) => todo!(),
+                            Content::Crate(_) => todo!(),
+                            Content::Bank(_) => todo!(),
+                            Content::Water(_) => todo!(),
+                            Content::Market(_) => todo!(),
+                            Content::Fish(_) => todo!(),
+                            Content::Building => todo!(),
+                            Content::Bush(_) => todo!(),
+                            Content::JollyBlock(_) => todo!(),
+                            Content::Scarecrow => todo!(),
                         }
                     }
                     None => {}
@@ -234,7 +280,6 @@ impl<'window> MainState<'window> {
                 } else {
                     dir = Direction::Left;
                 }
-                println!("GUII {:?}", dir.clone());
 
                 self.robot_world.insert(Some(dir.clone()));
                 //self.game_world.insert(dir.clone());
@@ -261,7 +306,7 @@ impl<'window> MainState<'window> {
         let texture = self.texture_creator.load_texture(
             Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("assets")
-                .join("bardo.png"),
+                .join("texture.png"),
         )?;
 
         for _i in 0..TILE_SIZE {
@@ -274,7 +319,9 @@ impl<'window> MainState<'window> {
                     | Event::KeyDown {
                         keycode: Some(Keycode::Escape),
                         ..
-                    } => {}
+                    } => {
+                        return Err("quit".to_string());
+                    }
                     Event::MouseWheel { y: 1, .. } => {
                         //zoom in
                     }

@@ -41,7 +41,6 @@ impl<'a> System<'a> for ChangeDirectionSystem {
     fn run(&mut self, mut data: Self::SystemData) {
         let dir = &*data.0;
         for vel in (&mut data.1).join() {
-            println!("GUIIIII2 {:?}", dir.clone().unwrap());
             vel.direction = dir.clone()
         }
     }
