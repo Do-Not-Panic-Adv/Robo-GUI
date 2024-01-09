@@ -21,6 +21,8 @@ use std::time::Duration;
 
 use crate::texture_manager::TextureType;
 
+use oxagaudiotool::OxAgAudioTool;
+
 mod components;
 mod renderer;
 mod systems;
@@ -41,10 +43,15 @@ pub struct MainState<'window> {
     content_world: World,
     dispatcher: Dispatcher<'window, 'window>,
     //texture: Texture<'window>,
+    //Provare a creare una structure per salvare le texture con Rc<RefCell>>
     texture_creator: TextureCreator<WindowContext>,
     sprite_table: SpriteTable,
+    camera: Camera,
+}
 
-    screen_offset: (i32, i32), //maybe move this outside of the mainstate
+struct Camera {
+    screen_offset: (i32, i32),
+    chase_robot: bool,
 }
 
 impl<'window> MainState<'window> {
@@ -98,10 +105,6 @@ impl<'window> MainState<'window> {
             })
             .build();
 
-        //grass entity
-        //Creata automaticamente quando si aggiorna il mondo
-        //game_world .create_entity() .with(Position(Point::new(0, 0))) .with(Sprite { region: Rect::new(TILE_SIZE, TILE_SIZE * 3, TILE_SIZE as u32, TILE_SIZE as u32), texture_type: TextureType::Tile(TileType::Grass), }) .build();
-        //
         //chiama i system relativi al robot
         let mut dispatcher = DispatcherBuilder::new()
             .with(ChangeDirectionSystem, "ChangeDir", &[])
@@ -164,8 +167,94 @@ impl<'window> MainState<'window> {
                 TILE_SIZE as u32,
             ),
         );
+        sprite_table.0.insert(
+            TextureType::Tile(TileType::ShallowWater),
+            Rect::new(
+                TILE_SIZE * 6,
+                TILE_SIZE * 0,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        sprite_table.0.insert(
+            TextureType::Tile(TileType::DeepWater),
+            Rect::new(
+                TILE_SIZE * 7,
+                TILE_SIZE * 0,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
 
-        let screen_offset = (0, 0);
+        sprite_table.0.insert(
+            TextureType::Tile(TileType::Teleport(false)),
+            Rect::new(
+                TILE_SIZE * 2,
+                TILE_SIZE * 1,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        sprite_table.0.insert(
+            TextureType::Tile(TileType::Teleport(true)),
+            Rect::new(
+                TILE_SIZE * 2,
+                TILE_SIZE * 2,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+
+        sprite_table.0.insert(
+            TextureType::Tile(TileType::Wall),
+            Rect::new(
+                TILE_SIZE * 3,
+                TILE_SIZE * 1,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        sprite_table.0.insert(
+            TextureType::Tile(TileType::Mountain),
+            Rect::new(
+                TILE_SIZE * 4,
+                TILE_SIZE * 1,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        sprite_table.0.insert(
+            TextureType::Tile(TileType::Snow),
+            Rect::new(
+                TILE_SIZE * 6,
+                TILE_SIZE * 1,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        sprite_table.0.insert(
+            TextureType::Tile(TileType::Lava),
+            Rect::new(
+                TILE_SIZE * 7,
+                TILE_SIZE * 1,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        sprite_table.0.insert(
+            TextureType::Tile(TileType::Hill),
+            Rect::new(
+                TILE_SIZE * 5,
+                TILE_SIZE * 1,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+
+        let camera = Camera {
+            screen_offset: (0, 0),
+            chase_robot: true,
+        };
         Ok(MainState {
             sdl_context,
             canvas,
@@ -175,7 +264,7 @@ impl<'window> MainState<'window> {
             dispatcher,
             texture_creator,
             sprite_table,
-            screen_offset,
+            camera,
         })
     }
 
@@ -333,28 +422,28 @@ impl<'window> MainState<'window> {
                         repeat: false,
                         ..
                     } => {
-                        self.screen_offset.0 += 10;
+                        self.camera.screen_offset.0 += TILE_SIZE;
                     }
                     Event::KeyDown {
                         keycode: Some(Keycode::Right),
                         repeat: false,
                         ..
                     } => {
-                        self.screen_offset.0 -= 10;
+                        self.camera.screen_offset.0 -= TILE_SIZE;
                     }
                     Event::KeyDown {
                         keycode: Some(Keycode::Down),
                         repeat: false,
                         ..
                     } => {
-                        self.screen_offset.1 -= 10;
+                        self.camera.screen_offset.1 -= TILE_SIZE;
                     }
                     Event::KeyDown {
                         keycode: Some(Keycode::Up),
                         repeat: false,
                         ..
                     } => {
-                        self.screen_offset.1 += 10;
+                        self.camera.screen_offset.1 += TILE_SIZE;
                     }
                     Event::MouseMotion {
                         mousestate,
@@ -363,8 +452,8 @@ impl<'window> MainState<'window> {
                         ..
                     } => {
                         if mousestate.right() {
-                            self.screen_offset.0 += xrel;
-                            self.screen_offset.1 += yrel;
+                            self.camera.screen_offset.0 += xrel;
+                            self.camera.screen_offset.1 += yrel;
                         }
                     }
                     _ => {}
@@ -373,31 +462,37 @@ impl<'window> MainState<'window> {
 
             //UPDATE
             self.dispatcher.dispatch(&self.robot_world);
+
             self.game_world.maintain();
             self.content_world.maintain();
             self.robot_world.maintain();
 
-            //chiamare più volte il rendere per ogni tipo di cosa da renderizzare
+            //chiamare più volte il renderer per ogni tipo di cosa da renderizzare
             //
             self.canvas.clear();
 
+            //renderizza tiles
             let _ = renderer::render(
                 &mut self.canvas,
                 &texture,
                 self.game_world.system_data(),
-                self.screen_offset,
+                self.camera.screen_offset,
             );
+
+            //renderizza content
             let _ = renderer::render(
                 &mut self.canvas,
                 &texture,
                 self.content_world.system_data(),
-                self.screen_offset,
+                self.camera.screen_offset,
             );
+
+            //renderizza robot
             let _ = renderer::render(
                 &mut self.canvas,
                 &texture,
                 self.robot_world.system_data(),
-                self.screen_offset,
+                self.camera.screen_offset,
             );
 
             self.canvas.present();
