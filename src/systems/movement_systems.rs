@@ -34,14 +34,14 @@ impl<'a> System<'a> for MoveSystem {
 pub(crate) struct ChangeDirectionSystem;
 impl<'a> System<'a> for ChangeDirectionSystem {
     type SystemData = (
-        ReadExpect<'a, Option<Direction>>,
+        ReadExpect<'a, Option<Option<Direction>>>,
         WriteStorage<'a, Velocity>,
     );
 
     fn run(&mut self, mut data: Self::SystemData) {
         let dir = &*data.0;
         for vel in (&mut data.1).join() {
-            vel.direction = dir.clone()
+            vel.direction = dir.clone().unwrap()
         }
     }
 }

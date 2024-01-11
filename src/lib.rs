@@ -361,13 +361,16 @@ impl<'window> MainState<'window> {
                 let last = last_coords.unwrap();
                 let dir;
                 if (coords.0 as i32 - last.0 as i32) > 0 {
-                    dir = Direction::Down;
+                    dir = Some(Direction::Down);
                 } else if (coords.0 as i32 - last.0 as i32) > 0 {
-                    dir = Direction::Up;
+                    dir = Some(Direction::Up);
                 } else if (coords.1 as i32 - last.1 as i32) > 0 {
-                    dir = Direction::Right;
+                    dir = Some(Direction::Right);
+                } else if (coords.1 as i32 - last.1 as i32) < 0 {
+                    dir = Some(Direction::Left);
                 } else {
-                    dir = Direction::Left;
+                    println!("Not moved");
+                    dir = None
                 }
 
                 self.robot_world.insert(Some(dir.clone()));
