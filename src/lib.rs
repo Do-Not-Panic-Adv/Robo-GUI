@@ -3,7 +3,7 @@ use components::movement_components::Velocity;
 
 use robotics_lib::interface::Direction;
 use robotics_lib::world::tile::{Content, Tile, TileType};
-use sdl2::render::{Canvas, Texture, TextureCreator};
+use sdl2::render::{Canvas, TextureCreator};
 use sdl2::video::{Window, WindowContext};
 use sdl2::Sdl;
 use systems::movement_systems::{ChangeDirectionSystem, MoveSystem};
@@ -23,6 +23,7 @@ use crate::texture_manager::TextureType;
 
 use oxagaudiotool::OxAgAudioTool;
 
+mod animation;
 mod components;
 mod renderer;
 mod systems;
@@ -52,6 +53,7 @@ pub struct MainState<'window> {
 struct Camera {
     screen_offset: (i32, i32),
     chase_robot: bool,
+    zoom_level: i32,
 }
 
 impl<'window> MainState<'window> {
@@ -88,22 +90,8 @@ impl<'window> MainState<'window> {
         content_world.register::<Sprite>();
 
         robot_world.insert(Some(Direction::Right));
-        //game_world.insert(Some(Direction::Right));
-        //content_world.insert(Some(Direction::Right));
 
         //robot entity
-        robot_world
-            .create_entity()
-            .with(Position(Point::new(0, 0)))
-            .with(Velocity {
-                speed: 1,
-                direction: None,
-            })
-            .with(Sprite {
-                region: Rect::new(0, TILE_SIZE * 2, TILE_SIZE as u32, TILE_SIZE as u32),
-                texture_type: TextureType::Robot,
-            })
-            .build();
 
         //chiama i system relativi al robot
         let mut dispatcher = DispatcherBuilder::new()
@@ -254,6 +242,7 @@ impl<'window> MainState<'window> {
         let camera = Camera {
             screen_offset: (0, 0),
             chase_robot: true,
+            zoom_level: 0,
         };
         Ok(MainState {
             sdl_context,
@@ -266,6 +255,23 @@ impl<'window> MainState<'window> {
             sprite_table,
             camera,
         })
+    }
+    pub fn add_robot(&mut self, pos_x: usize, pos_y: usize) {
+        self.robot_world
+            .create_entity()
+            .with(Position(Point::new(
+                TILE_SIZE * pos_x as i32,
+                TILE_SIZE * pos_y as i32,
+            )))
+            .with(Velocity {
+                speed: 1,
+                direction: None,
+            })
+            .with(Sprite {
+                region: Rect::new(0, TILE_SIZE * 2, TILE_SIZE as u32, TILE_SIZE as u32),
+                texture_type: TextureType::Robot,
+            })
+            .build();
     }
 
     pub fn update_world(&mut self, world: Vec<Vec<Option<Tile>>>) {
@@ -381,20 +387,12 @@ impl<'window> MainState<'window> {
     }
 
     pub fn tick(&mut self) -> Result<(), String> {
-        let mut textures = Textures::new();
+        //let mut textures = Textures::new();
 
         //let grass_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("tiles") .join("grass.png"),)?;
-        //let robot_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("bardo.png"),)?;
-        //let sand_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("tiles") .join("grass.png"),)?;
-        //let rock_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("tiles") .join("props.png"),)?;
-        //let road_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("tiles") .join("street.png"),)?;
 
         //let _ = textures .add_texture(TextureType::Tile(TileType::Grass), &grass_texture) .clone();
-        //let _ = textures .add_texture(TextureType::Robot, &robot_texture) .clone();
-        //let _ = textures .add_texture(TextureType::Tile(TileType::Sand), &sand_texture) .clone();
-        //let _ = textures .add_texture(TextureType::Content(Content::Rock(0)), &rock_texture) .clone();
-        //let _ = textures .add_texture(TextureType::Tile(TileType::Street), &road_texture) .clone();
-        //
+
         let texture = self.texture_creator.load_texture(
             Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("assets")
@@ -414,12 +412,8 @@ impl<'window> MainState<'window> {
                     } => {
                         return Err("quit".to_string());
                     }
-                    Event::MouseWheel { y: 1, .. } => {
-                        //zoom in
-                    }
-                    Event::MouseWheel { y: -1, .. } => {
-                        //zoom out
-                    }
+                    Event::MouseWheel { y: 1, .. } => self.camera.zoom_level += 1,
+                    Event::MouseWheel { y: -1, .. } => self.camera.zoom_level -= 1,
                     Event::KeyDown {
                         keycode: Some(Keycode::Left),
                         repeat: false,
@@ -470,16 +464,16 @@ impl<'window> MainState<'window> {
             self.content_world.maintain();
             self.robot_world.maintain();
 
-            //chiamare più volte il renderer per ogni tipo di cosa da renderizzare
-            //
             self.canvas.clear();
 
-            //renderizza tiles
+            //FARE UNA LISTA DI ELEMENTI DA RENDERIZZARE E ITERARE QUELLA
+            // renderizza tiles
             let _ = renderer::render(
                 &mut self.canvas,
                 &texture,
                 self.game_world.system_data(),
                 self.camera.screen_offset,
+                &self.camera,
             );
 
             //renderizza content
@@ -488,6 +482,7 @@ impl<'window> MainState<'window> {
                 &texture,
                 self.content_world.system_data(),
                 self.camera.screen_offset,
+                &self.camera,
             );
 
             //renderizza robot
@@ -496,7 +491,10 @@ impl<'window> MainState<'window> {
                 &texture,
                 self.robot_world.system_data(),
                 self.camera.screen_offset,
+                &self.camera,
             );
+
+            //aggiungere chiamate renderer per env_conditions
 
             self.canvas.present();
 

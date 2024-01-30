@@ -1,6 +1,6 @@
 use crate::components::drawable_components::{Position, Sprite};
 use crate::texture_manager::Textures;
-use crate::ZOOM_LEVEL;
+use crate::{Camera, ZOOM_LEVEL};
 
 use sdl2::rect::{Point, Rect};
 use sdl2::render::{Texture, WindowCanvas};
@@ -15,6 +15,7 @@ pub(crate) fn render(
     texture: &Texture,
     data: SystemData,
     offset: (i32, i32),
+    camera: &Camera,
 ) -> Result<(), String> {
     let (width, height) = canvas.output_size()?;
 
@@ -23,13 +24,17 @@ pub(crate) fn render(
     for (pos, sprite) in (&data.0, &data.1).join() {
         //Puts the (0,0) coordinate int the center
         let screen_position = pos.0 + Point::new(width as i32 / 2, height as i32 / 2);
-        //let screen_position = Point::new(0, 0);
 
-        let screen_rect = Rect::from_center(
-            screen_position.scale(ZOOM_LEVEL).offset(offset.0, offset.1),
-            sprite.region.width(),
-            sprite.region.height(),
+        let scaled_width = sprite.region.width() as i32 + camera.zoom_level;
+        let scaled_height = sprite.region.height() as i32 + camera.zoom_level;
+
+        let mut screen_rect = Rect::from_center(
+            screen_position.offset(offset.0, offset.1),
+            scaled_width as u32,
+            scaled_height as u32,
         );
+        //println!("{:?} {:?}", screen_rect, screen_position);
+        //canvas.set_scale(camera.zoom_level, camera.zoom_level)?;
         canvas.copy(&texture, sprite.region, screen_rect)?;
     }
 
