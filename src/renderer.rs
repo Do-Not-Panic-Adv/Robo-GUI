@@ -1,6 +1,6 @@
 use crate::components::drawable_components::{Position, Sprite};
 use crate::texture_manager::Textures;
-use crate::{Camera, ZOOM_LEVEL};
+use crate::{Camera, TILE_SIZE, ZOOM_LEVEL};
 
 use sdl2::rect::{Point, Rect};
 use sdl2::render::{Texture, WindowCanvas};
@@ -17,19 +17,25 @@ pub(crate) fn render(
     offset: (i32, i32),
     camera: &Camera,
 ) -> Result<(), String> {
-    let (width, height) = canvas.output_size()?;
+    let (window_width, window_height) = canvas.output_size()?;
 
     //USE MARKER COMPONENT TO IMPLEMENT SEPARATE RENDERER FOR THE ROBOT AND TILES
 
     for (pos, sprite) in (&data.0, &data.1).join() {
-        //Puts the (0,0) coordinate int the center
-        let screen_position = pos.0 + Point::new(width as i32 / 2, height as i32 / 2);
+        //this rappresents the point in the canvas where the sprite will be placed
+        let screen_position = pos.0 + Point::new(window_width as i32 / 2, window_height as i32 / 2);
 
         let scaled_width = sprite.region.width() as i32 + camera.zoom_level;
         let scaled_height = sprite.region.height() as i32 + camera.zoom_level;
 
         let mut screen_rect = Rect::from_center(
-            screen_position.offset(offset.0, offset.1),
+            screen_position.offset(
+                offset.0 - camera.zoom_level * TILE_SIZE / 2,
+                offset.1 - camera.zoom_level * TILE_SIZE / 2,
+            ) + Point::new(
+                camera.zoom_level * (screen_position.x / TILE_SIZE),
+                camera.zoom_level * (screen_position.y / TILE_SIZE),
+            ),
             scaled_width as u32,
             scaled_height as u32,
         );

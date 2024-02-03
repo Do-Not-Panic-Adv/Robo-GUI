@@ -17,6 +17,7 @@ oxagaudiotool = {registry = "kellnr", version = "0.2"}
 specs = "0.20"
 specs-derive = "0.4"
 rand="0.8.5"
+charting_tools = { version = "1.0.5", registry = "kellnr" }
 
 [dependencies.sdl2]
 version = "0.36"
