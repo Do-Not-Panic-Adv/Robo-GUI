@@ -33,7 +33,6 @@ const HEIGHT: u32 = 480;
 const WIDTH: u32 = 800;
 
 const TILE_SIZE: i32 = 32;
-static ZOOM_LEVEL: i32 = 1;
 
 pub struct MainState<'window> {
     sdl_context: Sdl,
@@ -287,9 +286,7 @@ impl<'window> MainState<'window> {
                     Some(t) => {
                         self.game_world
                             .create_entity()
-                            .with(Position(
-                                Point::new(x * TILE_SIZE, y * TILE_SIZE).scale(ZOOM_LEVEL),
-                            ))
+                            .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                             .with(Sprite {
                                 region: *self
                                     .sprite_table
@@ -304,9 +301,7 @@ impl<'window> MainState<'window> {
                             Content::Rock(_) => {
                                 self.content_world
                                     .create_entity()
-                                    .with(Position(
-                                        Point::new(x * TILE_SIZE, y * TILE_SIZE).scale(ZOOM_LEVEL),
-                                    ))
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
                                         region: *self
                                             .sprite_table
@@ -320,9 +315,7 @@ impl<'window> MainState<'window> {
                             Content::Tree(_) => {
                                 self.content_world
                                     .create_entity()
-                                    .with(Position(
-                                        Point::new(x * TILE_SIZE, y * TILE_SIZE).scale(ZOOM_LEVEL),
-                                    ))
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
                                         region: *self
                                             .sprite_table
