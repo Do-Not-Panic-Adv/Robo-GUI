@@ -14,7 +14,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::rect::{Point, Rect};
 use specs::{Builder, Dispatcher, DispatcherBuilder, World, WorldExt};
 
-use texture_manager::{SpriteTable, Textures};
+use texture_manager::SpriteTable;
 
 use std::path::Path;
 use std::time::Duration;
@@ -439,12 +439,19 @@ impl<'window> MainState<'window> {
                         mousestate,
                         xrel,
                         yrel,
+                        y,
+                        x,
                         ..
                     } => {
                         if mousestate.right() {
                             self.camera.screen_offset.0 += xrel;
                             self.camera.screen_offset.1 += yrel;
                         }
+                        println!(
+                            "Pointing: {:?} z:{:?}",
+                            self.get_coords_from_pos(Point::new(x, y)),
+                            self.camera.zoom_level
+                        )
                     }
                     _ => {}
                 }
@@ -465,7 +472,6 @@ impl<'window> MainState<'window> {
                 &mut self.canvas,
                 &texture,
                 self.game_world.system_data(),
-                self.camera.screen_offset,
                 &self.camera,
             );
 
@@ -474,7 +480,6 @@ impl<'window> MainState<'window> {
                 &mut self.canvas,
                 &texture,
                 self.content_world.system_data(),
-                self.camera.screen_offset,
                 &self.camera,
             );
 
@@ -483,7 +488,6 @@ impl<'window> MainState<'window> {
                 &mut self.canvas,
                 &texture,
                 self.robot_world.system_data(),
-                self.camera.screen_offset,
                 &self.camera,
             );
 
@@ -495,5 +499,9 @@ impl<'window> MainState<'window> {
         }
 
         Ok(())
+    }
+    pub fn get_coords_from_pos(&self, pos: Point) -> (i32, i32) {
+        let point = renderer::calculate_map_coords(pos, &self.camera, &self.canvas);
+        ((point.x()), (point.y()))
     }
 }

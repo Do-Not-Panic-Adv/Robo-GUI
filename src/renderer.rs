@@ -1,3 +1,5 @@
+use std::ops::Div;
+
 use crate::components::drawable_components::{Position, Sprite};
 use crate::{Camera, TILE_SIZE};
 
@@ -13,35 +15,58 @@ pub(crate) fn render(
     canvas: &mut WindowCanvas,
     texture: &Texture,
     data: SystemData,
-    offset: (i32, i32),
     camera: &Camera,
 ) -> Result<(), String> {
-    let (window_width, window_height) = canvas.output_size()?;
-
     //USE MARKER COMPONENT TO IMPLEMENT SEPARATE RENDERER FOR THE ROBOT AND TILES
 
     for (pos, sprite) in (&data.0, &data.1).join() {
+        //add check if the compomentent to be rendered is inside the viewport
+
         //this rappresents the point in the canvas where the sprite will be placed
-        let screen_position = pos.0 + Point::new(window_width as i32 / 2, window_height as i32 / 2);
+        let screen_position = calculate_screen_position(pos.0, camera, canvas);
 
         let scaled_width = sprite.region.width() as i32 + camera.zoom_level;
         let scaled_height = sprite.region.height() as i32 + camera.zoom_level;
 
-        let screen_rect = Rect::from_center(
-            screen_position.offset(
-                offset.0 - (camera.zoom_level * TILE_SIZE) / 2,
-                offset.1 - (camera.zoom_level * TILE_SIZE) / 2,
-            ) + Point::new(
-                (camera.zoom_level * screen_position.x) / TILE_SIZE,
-                (camera.zoom_level * screen_position.y) / TILE_SIZE,
-            ),
-            scaled_width as u32,
-            scaled_height as u32,
-        );
-        println!("{:?} {:?}", screen_position, sprite.texture_type);
+        let screen_rect =
+            Rect::from_center(screen_position, scaled_width as u32, scaled_height as u32);
+        //TODO: Create a function that a screen takes screen_position, zoom_level and tilesize are return
+        //the map coordinate and vice versa
+
+        //println!( "{:?} {:?} {:?}", screen_position, pos.0.div(TILE_SIZE), calculate_map_coords(screen_position, camera, canvas).div(TILE_SIZE));
         //canvas.set_scale(camera.zoom_level, camera.zoom_level)?;
         canvas.copy(&texture, sprite.region, screen_rect)?;
     }
 
     Ok(())
+}
+pub(crate) fn calculate_screen_position(
+    component_pos: Point,
+    camera: &Camera,
+    canvas: &WindowCanvas,
+) -> Point {
+    //TODO: add camera following
+    let (window_width, window_height) = canvas.output_size().unwrap();
+    let screen_position = component_pos; //+ Point::new(window_width as i32 / 2, window_height as i32 / 2);
+
+    component_pos + Point::new(camera.screen_offset.0, camera.screen_offset.1) //mouse mov
+        //- Point::new( (camera.zoom_level * TILE_SIZE) / 2, (camera.zoom_level * TILE_SIZE) / 2,)
+        + Point::new(
+            (camera.zoom_level * screen_position.x) / TILE_SIZE,
+            (camera.zoom_level * screen_position.y) / TILE_SIZE,
+        )
+}
+pub(crate) fn calculate_map_coords(
+    screen_position: Point,
+    camera: &Camera,
+    canvas: &WindowCanvas,
+) -> Point {
+    let (window_width, window_height) = canvas.output_size().unwrap();
+    screen_position
+        //- Point::new(window_width as i32 / 2, window_height as i32 / 2)
+    - Point::new(camera.screen_offset.0, camera.screen_offset.1)
+        - Point::new(
+            (screen_position.x- camera.zoom_level) / TILE_SIZE,
+            (screen_position.y-camera.zoom_level) / TILE_SIZE,
+        )
 }
