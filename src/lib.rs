@@ -326,19 +326,192 @@ impl<'window> MainState<'window> {
                                     })
                                     .build();
                             }
-                            Content::Garbage(_) => todo!(),
-                            Content::Fire => todo!(),
-                            Content::Coin(_) => todo!(),
-                            Content::Bin(_) => todo!(),
-                            Content::Crate(_) => todo!(),
-                            Content::Bank(_) => todo!(),
-                            Content::Water(_) => todo!(),
-                            Content::Market(_) => todo!(),
-                            Content::Fish(_) => todo!(),
-                            Content::Building => todo!(),
-                            Content::Bush(_) => todo!(),
-                            Content::JollyBlock(_) => todo!(),
-                            Content::Scarecrow => todo!(),
+                            Content::Garbage(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+                            Content::Fire => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+                            Content::Coin(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+                            Content::Bin(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+                            Content::Crate(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+
+                            Content::Bank(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+
+                            Content::Water(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+
+                            Content::Market(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+                            Content::Fish(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+                            Content::Building => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+                            Content::Bush(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+
+                            Content::JollyBlock(_) => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
+                            Content::Scarecrow => {
+                                self.content_world
+                                    .create_entity()
+                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .unwrap(),
+                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                    })
+                                    .build();
+                            }
                         }
                     }
                     None => {}
