@@ -101,11 +101,8 @@ impl<'window> MainState<'window> {
         dispatcher.setup(&mut robot_world);
 
         let mut sprite_table = SpriteTable::new();
+        sprite_table.load_prites();
 
-        sprite_table.0.insert(
-            TextureType::Robot,
-            Rect::new(TILE_SIZE * 2, 0, TILE_SIZE as u32, TILE_SIZE as u32),
-        );
         sprite_table.0.insert(
             TextureType::Tile(TileType::Grass),
             Rect::new(
