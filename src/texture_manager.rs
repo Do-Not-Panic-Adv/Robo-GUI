@@ -12,7 +12,7 @@ impl SpriteTable {
     pub fn new() -> Self {
         SpriteTable(HashMap::new())
     }
-    pub fn load_prites(&mut self) {
+    pub fn load_default_prites(&mut self) {
         self.0.insert(
             TextureType::Robot,
             Rect::new(TILE_SIZE * 2, 0, TILE_SIZE as u32, TILE_SIZE as u32),
@@ -148,6 +148,10 @@ impl SpriteTable {
                 TILE_SIZE as u32,
             ),
         );
+    }
+    //sovrascrive la sprite di un determinato tt
+    pub fn load_sprite(&mut self, tt: TextureType, rect: Rect) {
+        let _ = self.0.insert(tt, rect);
     }
 }
 
