@@ -1,6 +1,7 @@
 use components::drawable_components::{Position, Sprite};
 use components::movement_components::Velocity;
 
+use renderer::render;
 use robotics_lib::interface::Direction;
 use robotics_lib::world::tile::{Content, Tile, TileType};
 use sdl2::render::{Canvas, TextureCreator};
@@ -34,13 +35,18 @@ const WIDTH: u32 = 800;
 
 const TILE_SIZE: i32 = 32;
 
+const ORD_TILES: usize = 0;
+const ORD_CONTENT: usize = 1;
+const ORD_ROBOT: usize = 2;
+
 pub struct MainState<'window> {
     sdl_context: Sdl,
     //window: Window,
     canvas: Canvas<Window>,
-    game_world: World,
-    robot_world: World,
-    content_world: World,
+    //game_world: World,
+    //robot_world: World,
+    //content_world: World,
+    worlds: Vec<World>,
     dispatcher: Dispatcher<'window, 'window>,
     //texture: Texture<'window>,
     //Provare a creare una structure per salvare le texture con Rc<RefCell>>
@@ -75,15 +81,18 @@ impl<'window> MainState<'window> {
 
         let texture_creator = canvas.texture_creator();
 
+        //world per le time
         let mut game_world = World::new();
         game_world.register::<Position>();
         game_world.register::<Sprite>();
 
+        //world per il robot e altre cose che si muovono con una velocità
         let mut robot_world = World::new();
         robot_world.register::<Velocity>();
         robot_world.register::<Position>();
         robot_world.register::<Sprite>();
 
+        //world per i content
         let mut content_world = World::new();
         content_world.register::<Position>();
         content_world.register::<Sprite>();
@@ -104,18 +113,23 @@ impl<'window> MainState<'window> {
 
         //tutte le sprite sono definite in questo metodo, implementare metodo per sovrascrivere
         sprite_table.load_default_prites();
+        //sprite_table.load_sprite( TextureType::Tile(TileType::Grass), Rect::new(12, 43, 60, 34),);
 
         let camera = Camera {
             screen_offset: (0, 0),
             chase_robot: true,
             zoom_level: 0,
         };
+
+        let mut worlds: Vec<World> = Vec::new();
+        worlds.push(game_world);
+        worlds.push(content_world);
+        worlds.push(robot_world);
+
         Ok(MainState {
             sdl_context,
             canvas,
-            game_world,
-            robot_world,
-            content_world,
+            worlds,
             dispatcher,
             texture_creator,
             sprite_table,
@@ -123,7 +137,9 @@ impl<'window> MainState<'window> {
         })
     }
     pub fn add_robot(&mut self, pos_x: usize, pos_y: usize) {
-        self.robot_world
+        self.worlds
+            .get_mut(ORD_ROBOT)
+            .unwrap()
             .create_entity()
             .with(Position(Point::new(
                 TILE_SIZE * pos_x as i32,
@@ -141,17 +157,21 @@ impl<'window> MainState<'window> {
     }
 
     pub fn update_world(&mut self, world: Vec<Vec<Option<Tile>>>) {
-        self.game_world.delete_all();
-        self.content_world.delete_all();
+        self.worlds.get_mut(ORD_TILES).unwrap().delete_all();
+        self.worlds.get_mut(ORD_CONTENT).unwrap().delete_all();
         let mut y = 0;
         let mut x;
 
+        //cercare di sistemare sto schifo, aggiungere controlli per evitare di aggiungere entità
+        //che sono fuori dalla viewport
         for rows in world.iter() {
             x = 0;
             for cols in rows {
                 match cols {
                     Some(t) => {
-                        self.game_world
+                        self.worlds
+                            .get_mut(ORD_TILES)
+                            .unwrap()
                             .create_entity()
                             .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                             .with(Sprite {
@@ -166,7 +186,9 @@ impl<'window> MainState<'window> {
                         match &t.content {
                             Content::None => {}
                             Content::Rock(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -180,7 +202,9 @@ impl<'window> MainState<'window> {
                                     .build();
                             }
                             Content::Tree(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -194,7 +218,9 @@ impl<'window> MainState<'window> {
                                     .build();
                             }
                             Content::Garbage(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -208,7 +234,9 @@ impl<'window> MainState<'window> {
                                     .build();
                             }
                             Content::Fire => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -222,7 +250,9 @@ impl<'window> MainState<'window> {
                                     .build();
                             }
                             Content::Coin(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -236,7 +266,9 @@ impl<'window> MainState<'window> {
                                     .build();
                             }
                             Content::Bin(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -250,7 +282,9 @@ impl<'window> MainState<'window> {
                                     .build();
                             }
                             Content::Crate(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -265,7 +299,9 @@ impl<'window> MainState<'window> {
                             }
 
                             Content::Bank(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -280,7 +316,9 @@ impl<'window> MainState<'window> {
                             }
 
                             Content::Water(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -295,7 +333,9 @@ impl<'window> MainState<'window> {
                             }
 
                             Content::Market(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -309,7 +349,9 @@ impl<'window> MainState<'window> {
                                     .build();
                             }
                             Content::Fish(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -323,7 +365,9 @@ impl<'window> MainState<'window> {
                                     .build();
                             }
                             Content::Building => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -337,7 +381,9 @@ impl<'window> MainState<'window> {
                                     .build();
                             }
                             Content::Bush(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -352,7 +398,9 @@ impl<'window> MainState<'window> {
                             }
 
                             Content::JollyBlock(_) => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -366,7 +414,9 @@ impl<'window> MainState<'window> {
                                     .build();
                             }
                             Content::Scarecrow => {
-                                self.content_world
+                                self.worlds
+                                    .get_mut(ORD_CONTENT)
+                                    .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
                                     .with(Sprite {
@@ -412,7 +462,10 @@ impl<'window> MainState<'window> {
                     dir = None
                 }
 
-                self.robot_world.insert(Some(dir.clone()));
+                self.worlds
+                    .get_mut(ORD_ROBOT)
+                    .unwrap()
+                    .insert(Some(dir.clone()));
                 //self.game_world.insert(dir.clone());
             }
             None => {}
@@ -498,38 +551,23 @@ impl<'window> MainState<'window> {
             }
 
             //UPDATE
-            self.dispatcher.dispatch(&self.robot_world);
+            self.dispatcher
+                .dispatch(&self.worlds.get_mut(ORD_ROBOT).unwrap());
 
-            self.game_world.maintain();
-            self.content_world.maintain();
-            self.robot_world.maintain();
+            self.worlds.get_mut(ORD_TILES).unwrap().maintain();
+            self.worlds.get_mut(ORD_CONTENT).unwrap().maintain();
+            self.worlds.get_mut(ORD_ROBOT).unwrap().maintain();
 
             self.canvas.clear();
 
-            //FARE UNA LISTA DI ELEMENTI DA RENDERIZZARE E ITERARE QUELLA
-            // renderizza tiles
-            let _ = renderer::render(
-                &mut self.canvas,
-                &texture,
-                self.game_world.system_data(),
-                &self.camera,
-            );
-
-            //renderizza content
-            let _ = renderer::render(
-                &mut self.canvas,
-                &texture,
-                self.content_world.system_data(),
-                &self.camera,
-            );
-
-            //renderizza robot
-            let _ = renderer::render(
-                &mut self.canvas,
-                &texture,
-                self.robot_world.system_data(),
-                &self.camera,
-            );
+            for world in self.worlds.iter_mut() {
+                let _ = render(
+                    &mut self.canvas,
+                    &texture,
+                    world.system_data(),
+                    &self.camera,
+                );
+            }
 
             //aggiungere chiamate renderer per env_conditions
 
