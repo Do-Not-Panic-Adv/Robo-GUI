@@ -228,9 +228,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Garbage(0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Garbage(0)),
                                     })
                                     .build();
                             }
@@ -244,9 +244,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Fire))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Fire),
                                     })
                                     .build();
                             }
@@ -260,9 +260,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Coin(0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Coin(0)),
                                     })
                                     .build();
                             }
@@ -276,9 +276,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Bin(0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Bin(0)),
                                     })
                                     .build();
                             }
@@ -292,9 +292,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Crate(0..0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Crate(0..0)),
                                     })
                                     .build();
                             }
@@ -309,9 +309,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Bank(0..0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Bank(0..0)),
                                     })
                                     .build();
                             }
@@ -326,9 +326,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Water(0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Water(0)),
                                     })
                                     .build();
                             }
@@ -343,9 +343,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Market(0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Market(0)),
                                     })
                                     .build();
                             }
@@ -359,9 +359,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Fish(0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Fish(0)),
                                     })
                                     .build();
                             }
@@ -375,9 +375,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Building))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Building),
                                     })
                                     .build();
                             }
@@ -391,9 +391,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Bush(0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Bush(0)),
                                     })
                                     .build();
                             }
@@ -408,9 +408,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::JollyBlock(0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::JollyBlock(0)),
                                     })
                                     .build();
                             }
@@ -424,9 +424,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
+                                            .get(&TextureType::Content(Content::Scarecrow))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
+                                        texture_type: TextureType::Content(Content::Scarecrow(0)),
                                     })
                                     .build();
                             }
