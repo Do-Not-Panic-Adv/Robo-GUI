@@ -22,18 +22,18 @@ use std::time::Duration;
 
 use crate::texture_manager::TextureType;
 
-use oxagaudiotool::OxAgAudioTool;
+//use oxagaudiotool::OxAgAudioTool;
 
 mod animation;
 mod components;
 mod renderer;
 mod systems;
-mod texture_manager;
+pub mod texture_manager;
 
 const HEIGHT: u32 = 480;
 const WIDTH: u32 = 800;
 
-const TILE_SIZE: i32 = 32;
+pub const TILE_SIZE: i32 = 32;
 
 const ORD_TILES: usize = 0;
 const ORD_CONTENT: usize = 1;
@@ -74,6 +74,7 @@ impl<'window> MainState<'window> {
 
         let canvas = window
             .into_canvas()
+            .accelerated()
             .build()
             .expect("could not create canvas");
 
@@ -578,8 +579,13 @@ impl<'window> MainState<'window> {
 
         Ok(())
     }
+    //possibilmente cambiare la struct Point con tipi buildin per evitare di importare sdl nel main
     pub fn get_coords_from_pos(&self, pos: Point) -> (i32, i32) {
         let point = renderer::calculate_map_coords(pos, &self.camera, &self.canvas);
         ((point.x()), (point.y()))
+    }
+    pub fn load_sprite(&mut self, tt: TextureType, x: i32, y: i32, height: u32, width: u32) {
+        self.sprite_table
+            .load_sprite(tt, Rect::new(x, y, width, height));
     }
 }

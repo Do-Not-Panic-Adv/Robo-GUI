@@ -47,6 +47,123 @@ impl SpriteTable {
             ),
         );
         self.0.insert(
+            TextureType::Content(Content::Garbage(0)),
+            Rect::new(
+                TILE_SIZE * 4,
+                TILE_SIZE * 2,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Fire),
+            Rect::new(
+                TILE_SIZE * 5,
+                TILE_SIZE * 2,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Coin(0)),
+            Rect::new(
+                TILE_SIZE * 6,
+                TILE_SIZE * 2,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Bin(0..0)),
+            Rect::new(
+                TILE_SIZE * 7,
+                TILE_SIZE * 2,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Crate(0..0)),
+            Rect::new(
+                TILE_SIZE * 0,
+                TILE_SIZE * 3,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Bank(0..0)),
+            Rect::new(
+                TILE_SIZE * 1,
+                TILE_SIZE * 3,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Market(0)),
+            Rect::new(
+                TILE_SIZE * 2,
+                TILE_SIZE * 3,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Water(0)),
+            Rect::new(
+                TILE_SIZE * 3,
+                TILE_SIZE * 3,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Water(0)),
+            Rect::new(
+                TILE_SIZE * 4,
+                TILE_SIZE * 3,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Building),
+            Rect::new(
+                TILE_SIZE * 5,
+                TILE_SIZE * 3,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Bush(0)),
+            Rect::new(
+                TILE_SIZE * 6,
+                TILE_SIZE * 3,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::JollyBlock(0)),
+            Rect::new(
+                TILE_SIZE * 7,
+                TILE_SIZE * 3,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Content(Content::Scarecrow),
+            Rect::new(
+                TILE_SIZE * 0,
+                TILE_SIZE * 4,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
             TextureType::Content(Content::Tree(0)),
             Rect::new(
                 TILE_SIZE * 0,
@@ -115,7 +232,7 @@ impl SpriteTable {
         self.0.insert(
             TextureType::Tile(TileType::Mountain),
             Rect::new(
-                TILE_SIZE * 4,
+                TILE_SIZE * 5,
                 TILE_SIZE * 1,
                 TILE_SIZE as u32,
                 TILE_SIZE as u32,
@@ -142,7 +259,7 @@ impl SpriteTable {
         self.0.insert(
             TextureType::Tile(TileType::Hill),
             Rect::new(
-                TILE_SIZE * 5,
+                TILE_SIZE * 4,
                 TILE_SIZE * 1,
                 TILE_SIZE as u32,
                 TILE_SIZE as u32,
@@ -165,7 +282,7 @@ impl<'texture> Textures<'texture> {
 }
 
 #[derive(Debug)]
-pub(crate) enum TextureType {
+pub enum TextureType {
     Robot,
     Tile(TileType),
     Content(Content),
