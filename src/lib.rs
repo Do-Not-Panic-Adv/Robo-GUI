@@ -276,9 +276,9 @@ impl<'window> MainState<'window> {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Content(Content::Bin(0)))
+                                            .get(&TextureType::Content(Content::Bin(0..0)))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Bin(0)),
+                                        texture_type: TextureType::Content(Content::Bin(0..0)),
                                     })
                                     .build();
                             }
@@ -426,7 +426,7 @@ impl<'window> MainState<'window> {
                                             .0
                                             .get(&TextureType::Content(Content::Scarecrow))
                                             .unwrap(),
-                                        texture_type: TextureType::Content(Content::Scarecrow(0)),
+                                        texture_type: TextureType::Content(Content::Scarecrow),
                                     })
                                     .build();
                             }
