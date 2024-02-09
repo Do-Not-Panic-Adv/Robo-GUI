@@ -28,13 +28,13 @@ pub(crate) fn render(
         let scaled_width = sprite.region.width() as i32 + camera.zoom_level;
         let scaled_height = sprite.region.height() as i32 + camera.zoom_level;
 
+        //this represents the area of the screen on which the sprite region will be placed to.
         let screen_rect =
             Rect::from_center(screen_position, scaled_width as u32, scaled_height as u32);
         //TODO: Create a function that a screen takes screen_position, zoom_level and tilesize are return
         //the map coordinate and vice versa
 
         //println!( "{:?} {:?} {:?}", screen_position, pos.0.div(TILE_SIZE), calculate_map_coords(screen_position, camera, canvas).div(TILE_SIZE));
-        //canvas.set_scale(camera.zoom_level, camera.zoom_level)?;
         canvas.copy(&texture, sprite.region, screen_rect)?;
     }
 
@@ -47,7 +47,7 @@ pub(crate) fn calculate_screen_position(
 ) -> Point {
     //TODO: add camera following
     let (window_width, window_height) = canvas.output_size().unwrap();
-    let screen_position = component_pos; //+ Point::new(window_width as i32 / 2, window_height as i32 / 2);
+    let screen_position = component_pos; // Point::new(window_width as i32 / 2, window_height as i32 / 2);
 
     component_pos + Point::new(camera.screen_offset.0, camera.screen_offset.1) //mouse mov
         //- Point::new( (camera.zoom_level * TILE_SIZE) / 2, (camera.zoom_level * TILE_SIZE) / 2,)
@@ -62,11 +62,15 @@ pub(crate) fn calculate_map_coords(
     canvas: &WindowCanvas,
 ) -> Point {
     let (window_width, window_height) = canvas.output_size().unwrap();
-    screen_position
+    let tmp = screen_position
         //- Point::new(window_width as i32 / 2, window_height as i32 / 2)
     - Point::new(camera.screen_offset.0, camera.screen_offset.1)
-        - Point::new(
-            (screen_position.x- camera.zoom_level) / TILE_SIZE,
-            (screen_position.y-camera.zoom_level) / TILE_SIZE,
-        )
+        + Point::new(
+            (TILE_SIZE + camera.zoom_level) / 2,
+            (TILE_SIZE + camera.zoom_level) / 2,
+        );
+    Point::new(
+        tmp.x / (TILE_SIZE + camera.zoom_level),
+        tmp.y / (TILE_SIZE + camera.zoom_level),
+    )
 }

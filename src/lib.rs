@@ -34,6 +34,7 @@ const HEIGHT: u32 = 480;
 const WIDTH: u32 = 800;
 
 pub const TILE_SIZE: i32 = 32;
+const ROBOT_SPEED: i32 = 1;
 
 const ORD_TILES: usize = 0;
 const ORD_CONTENT: usize = 1;
@@ -147,7 +148,7 @@ impl<'window> MainState<'window> {
                 TILE_SIZE * pos_y as i32,
             )))
             .with(Velocity {
-                speed: 1,
+                speed: ROBOT_SPEED,
                 direction: None,
             })
             .with(Sprite {
@@ -486,7 +487,7 @@ impl<'window> MainState<'window> {
                 .join("texture.png"),
         )?;
 
-        for _i in 0..TILE_SIZE {
+        for _i in 0..(TILE_SIZE / ROBOT_SPEED) {
             let mut event_pump = self.sdl_context.event_pump().unwrap();
 
             //Event handling
@@ -542,9 +543,10 @@ impl<'window> MainState<'window> {
                             self.camera.screen_offset.1 += yrel;
                         }
                         println!(
-                            "Pointing: {:?} z:{:?}",
+                            "Pointing: {:?} z:{:?}, camera offset: {:?}",
                             self.get_coords_from_pos(Point::new(x, y)),
-                            self.camera.zoom_level
+                            self.camera.zoom_level,
+                            self.camera.screen_offset
                         )
                     }
                     _ => {}
