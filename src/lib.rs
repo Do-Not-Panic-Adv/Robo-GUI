@@ -48,6 +48,7 @@ pub struct MainState<'window> {
     //robot_world: World,
     //content_world: World,
     worlds: Vec<World>,
+    tiles_world: Vec<Vec<Option<Tile>>>,
     dispatcher: Dispatcher<'window, 'window>,
     //texture: Texture<'window>,
     //Provare a creare una structure per salvare le texture con Rc<RefCell>>
@@ -136,6 +137,7 @@ impl<'window> MainState<'window> {
             texture_creator,
             sprite_table,
             camera,
+            tiles_world: Vec::new(),
         })
     }
     pub fn add_robot(&mut self, pos_x: usize, pos_y: usize) {
@@ -161,6 +163,9 @@ impl<'window> MainState<'window> {
     pub fn update_world(&mut self, world: Vec<Vec<Option<Tile>>>) {
         self.worlds.get_mut(ORD_TILES).unwrap().delete_all();
         self.worlds.get_mut(ORD_CONTENT).unwrap().delete_all();
+
+        self.tiles_world = world.clone();
+
         let mut y = 0;
         let mut x;
 
@@ -542,11 +547,17 @@ impl<'window> MainState<'window> {
                             self.camera.screen_offset.0 += xrel;
                             self.camera.screen_offset.1 += yrel;
                         }
+                        let pos = self.get_coords_from_pos(Point::new(x, y));
                         println!(
                             "Pointing: {:?} z:{:?}, camera offset: {:?}",
-                            self.get_coords_from_pos(Point::new(x, y)),
-                            self.camera.zoom_level,
-                            self.camera.screen_offset
+                            pos, self.camera.zoom_level, self.camera.screen_offset
+                        );
+                        if self.tiles_world.len() >= pos.1 as usize
+                            && self.tiles_world[0].len() >= pos.0 as usize
+                        {}
+                        println!(
+                            "Pointing tile {:?}",
+                            self.tiles_world[pos.1 as usize][pos.0 as usize]
                         )
                     }
                     _ => {}
