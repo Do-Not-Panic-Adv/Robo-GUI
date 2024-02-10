@@ -3,7 +3,7 @@ use components::movement_components::Velocity;
 
 use renderer::render;
 use robotics_lib::interface::Direction;
-use robotics_lib::world::tile::{Content, Tile, TileType};
+use robotics_lib::world::tile::{Content, Tile};
 use sdl2::render::{Canvas, TextureCreator};
 use sdl2::video::{Window, WindowContext};
 use sdl2::Sdl;
@@ -13,7 +13,7 @@ use sdl2::event::Event;
 use sdl2::image::{InitFlag, LoadTexture};
 use sdl2::keyboard::Keycode;
 use sdl2::rect::{Point, Rect};
-use specs::{Builder, Dispatcher, DispatcherBuilder, World, WorldExt};
+use specs::{Builder, Dispatcher, DispatcherBuilder, Entity, World, WorldExt};
 
 use texture_manager::SpriteTable;
 
@@ -21,7 +21,7 @@ use std::path::Path;
 use std::time::Duration;
 
 use crate::hints::Hint;
-use crate::texture_manager::TextureType;
+use crate::texture_manager::{OverlayType, TextureType};
 
 //use oxagaudiotool::OxAgAudioTool;
 
@@ -40,15 +40,14 @@ const ROBOT_SPEED: i32 = 1;
 
 const ORD_TILES: usize = 0;
 const ORD_CONTENT: usize = 1;
-const ORD_ROBOT: usize = 2;
+const ORD_OVERLAY_HOVER: usize = 2;
+const ORD_OVERLAY_HINT: usize = 3;
+const ORD_ROBOT: usize = 4;
 
 pub struct MainState<'window> {
     sdl_context: Sdl,
     //window: Window,
     canvas: Canvas<Window>,
-    //game_world: World,
-    //robot_world: World,
-    //content_world: World,
     worlds: Vec<World>,
     tiles_world: Vec<Vec<Option<Tile>>>,
     dispatcher: Dispatcher<'window, 'window>,
@@ -103,9 +102,15 @@ impl<'window> MainState<'window> {
         content_world.register::<Position>();
         content_world.register::<Sprite>();
 
-        robot_world.insert(Some(Direction::Right));
+        let mut overlay_world_hover = World::new();
+        overlay_world_hover.register::<Position>();
+        overlay_world_hover.register::<Sprite>();
 
-        //robot entity
+        let mut overlay_world_hint = World::new();
+        overlay_world_hint.register::<Position>();
+        overlay_world_hint.register::<Sprite>();
+
+        robot_world.insert(Some(Direction::Right));
 
         //chiama i system relativi al robot
         let mut dispatcher = DispatcherBuilder::new()
@@ -130,6 +135,8 @@ impl<'window> MainState<'window> {
         let mut worlds: Vec<World> = Vec::new();
         worlds.push(game_world);
         worlds.push(content_world);
+        worlds.push(overlay_world_hover);
+        worlds.push(overlay_world_hint);
         worlds.push(robot_world);
 
         Ok(MainState {
@@ -544,7 +551,29 @@ impl<'window> MainState<'window> {
                     } => match mouse_btn {
                         sdl2::mouse::MouseButton::Middle => {
                             let pos = self.get_coords_from_pos(Point::new(x, y));
-                            self.hints.push(Hint::new(pos.0, pos.1))
+                            self.hints.push(Hint::new(pos.0, pos.1));
+
+                            self.worlds.get_mut(ORD_OVERLAY_HINT).unwrap().delete_all();
+
+                            for hint in &self.hints {
+                                self.worlds
+                                    .get_mut(ORD_OVERLAY_HINT)
+                                    .unwrap()
+                                    .create_entity()
+                                    .with(Position(Point::new(
+                                        hint.get_pos().1 as i32 * TILE_SIZE,
+                                        hint.get_pos().0 as i32 * TILE_SIZE,
+                                    )))
+                                    .with(Sprite {
+                                        region: *self
+                                            .sprite_table
+                                            .0
+                                            .get(&TextureType::Overlay(OverlayType::TileHint))
+                                            .unwrap(),
+                                        texture_type: TextureType::Overlay(OverlayType::TileHint),
+                                    })
+                                    .build();
+                            }
                         }
                         _ => {}
                     },
@@ -561,13 +590,25 @@ impl<'window> MainState<'window> {
                             self.camera.screen_offset.1 += yrel;
                         }
                         let pos = self.get_coords_from_pos(Point::new(x, y));
-                        println!(
-                            "Pointing: {:?} z:{:?}, camera offset: {:?}",
-                            pos, self.camera.zoom_level, self.camera.screen_offset
-                        );
+                        //println!( "Pointing: {:?} z:{:?}, camera offset: {:?}", pos, self.camera.zoom_level, self.camera.screen_offset);
                         if self.tiles_world.len() > pos.1 as usize
                             && self.tiles_world[0].len() > pos.0 as usize
                         {
+                            self.worlds.get_mut(ORD_OVERLAY_HOVER).unwrap().delete_all();
+                            self.worlds
+                                .get_mut(ORD_OVERLAY_HOVER)
+                                .unwrap()
+                                .create_entity()
+                                .with(Position(Point::new(pos.0 * TILE_SIZE, pos.1 * TILE_SIZE)))
+                                .with(Sprite {
+                                    region: *self
+                                        .sprite_table
+                                        .0
+                                        .get(&TextureType::Overlay(OverlayType::TileHover))
+                                        .unwrap(),
+                                    texture_type: TextureType::Overlay(OverlayType::TileHover),
+                                })
+                                .build();
                             println!(
                                 "Pointing tile {:?}",
                                 self.tiles_world[pos.1 as usize][pos.0 as usize]

@@ -13,6 +13,7 @@ impl SpriteTable {
         SpriteTable(HashMap::new())
     }
     pub fn load_default_prites(&mut self) {
+        //TODO: add parsing from json???
         self.0.insert(
             TextureType::Robot,
             Rect::new(TILE_SIZE * 2, 0, TILE_SIZE as u32, TILE_SIZE as u32),
@@ -265,6 +266,25 @@ impl SpriteTable {
                 TILE_SIZE as u32,
             ),
         );
+
+        self.0.insert(
+            TextureType::Overlay(OverlayType::TileHover),
+            Rect::new(
+                TILE_SIZE * 0,
+                TILE_SIZE * 6,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Overlay(OverlayType::TileHint),
+            Rect::new(
+                TILE_SIZE * 1,
+                TILE_SIZE * 6,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
     }
     //sovrascrive la sprite di un determinato tt
     pub fn load_sprite(&mut self, tt: TextureType, rect: Rect) {
@@ -286,6 +306,13 @@ pub enum TextureType {
     Robot,
     Tile(TileType),
     Content(Content),
+    Overlay(OverlayType),
+}
+
+#[derive(Debug, PartialEq)]
+pub enum OverlayType {
+    TileHover,
+    TileHint,
 }
 
 impl PartialEq for TextureType {
@@ -293,6 +320,7 @@ impl PartialEq for TextureType {
         match (self, other) {
             (Self::Tile(l0), Self::Tile(r0)) => l0 == r0,
             (Self::Content(l0), Self::Content(r0)) => l0 == r0,
+            (Self::Overlay(l0), Self::Overlay(r0)) => l0 == r0,
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
         }
     }
