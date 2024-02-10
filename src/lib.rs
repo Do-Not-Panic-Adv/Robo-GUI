@@ -36,7 +36,7 @@ const HEIGHT: u32 = 480;
 const WIDTH: u32 = 800;
 
 pub const TILE_SIZE: i32 = 32;
-const ROBOT_SPEED: i32 = 1;
+const ROBOT_SPEED: i32 = 6;
 
 const ORD_TILES: usize = 0;
 const ORD_CONTENT: usize = 1;
@@ -48,15 +48,16 @@ pub struct MainState<'window> {
     sdl_context: Sdl,
     //window: Window,
     canvas: Canvas<Window>,
+    texture_creator: TextureCreator<WindowContext>,
     worlds: Vec<World>,
     tiles_world: Vec<Vec<Option<Tile>>>,
     dispatcher: Dispatcher<'window, 'window>,
     //texture: Texture<'window>,
     //Provare a creare una structure per salvare le texture con Rc<RefCell>>
-    texture_creator: TextureCreator<WindowContext>,
     sprite_table: SpriteTable,
     camera: Camera,
-    markers: Vec<Marker>,
+    markers: Vec<Marker>, // consider changing this to an hashmap
+    robot_speed: i32,
 }
 
 struct Camera {
@@ -66,7 +67,7 @@ struct Camera {
 }
 
 impl<'window> MainState<'window> {
-    pub fn new() -> Result<MainState<'window>, String> {
+    pub fn new(robot_speed: i32) -> Result<MainState<'window>, String> {
         let sdl_context = sdl2::init()?;
 
         let window = sdl_context
@@ -139,6 +140,10 @@ impl<'window> MainState<'window> {
         worlds.push(overlay_world_markers);
         worlds.push(robot_world);
 
+        if (robot_speed > 6 || robot_speed < 1) {
+            return Err("speed has to be <= 6 and >=1".to_string());
+        }
+
         Ok(MainState {
             sdl_context,
             canvas,
@@ -149,6 +154,7 @@ impl<'window> MainState<'window> {
             camera,
             tiles_world: Vec::new(),
             markers: Vec::new(),
+            robot_speed,
         })
     }
     pub fn add_robot(&mut self, pos_x: usize, pos_y: usize) {
@@ -161,7 +167,7 @@ impl<'window> MainState<'window> {
                 TILE_SIZE * pos_y as i32,
             )))
             .with(Velocity {
-                speed: ROBOT_SPEED,
+                speed: 2_i32.pow(self.robot_speed as u32 - 1),
                 direction: None,
             })
             .with(Sprite {
@@ -503,7 +509,7 @@ impl<'window> MainState<'window> {
                 .join("texture.png"),
         )?;
 
-        for _i in 0..(TILE_SIZE / ROBOT_SPEED) {
+        for _i in 0..(TILE_SIZE / 2_i32.pow(self.robot_speed as u32 - 1)) {
             let mut event_pump = self.sdl_context.event_pump().unwrap();
 
             //Event handling
