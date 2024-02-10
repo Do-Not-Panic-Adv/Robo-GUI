@@ -277,7 +277,7 @@ impl SpriteTable {
             ),
         );
         self.0.insert(
-            TextureType::Overlay(OverlayType::TileHint),
+            TextureType::Overlay(OverlayType::TileMarker),
             Rect::new(
                 TILE_SIZE * 1,
                 TILE_SIZE * 6,
@@ -312,7 +312,7 @@ pub enum TextureType {
 #[derive(Debug, PartialEq)]
 pub enum OverlayType {
     TileHover,
-    TileHint,
+    TileMarker,
 }
 
 impl PartialEq for TextureType {

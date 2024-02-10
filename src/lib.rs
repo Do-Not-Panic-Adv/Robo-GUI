@@ -20,14 +20,14 @@ use texture_manager::SpriteTable;
 use std::path::Path;
 use std::time::Duration;
 
-use crate::hints::Hint;
+use crate::markers::Marker;
 use crate::texture_manager::{OverlayType, TextureType};
 
 //use oxagaudiotool::OxAgAudioTool;
 
 mod animation;
 mod components;
-mod hints;
+mod markers;
 mod renderer;
 mod systems;
 pub mod texture_manager;
@@ -56,7 +56,7 @@ pub struct MainState<'window> {
     texture_creator: TextureCreator<WindowContext>,
     sprite_table: SpriteTable,
     camera: Camera,
-    hints: Vec<Hint>,
+    markers: Vec<Marker>,
 }
 
 struct Camera {
@@ -106,9 +106,9 @@ impl<'window> MainState<'window> {
         overlay_world_hover.register::<Position>();
         overlay_world_hover.register::<Sprite>();
 
-        let mut overlay_world_hint = World::new();
-        overlay_world_hint.register::<Position>();
-        overlay_world_hint.register::<Sprite>();
+        let mut overlay_world_markers = World::new();
+        overlay_world_markers.register::<Position>();
+        overlay_world_markers.register::<Sprite>();
 
         robot_world.insert(Some(Direction::Right));
 
@@ -136,7 +136,7 @@ impl<'window> MainState<'window> {
         worlds.push(game_world);
         worlds.push(content_world);
         worlds.push(overlay_world_hover);
-        worlds.push(overlay_world_hint);
+        worlds.push(overlay_world_markers);
         worlds.push(robot_world);
 
         Ok(MainState {
@@ -148,7 +148,7 @@ impl<'window> MainState<'window> {
             sprite_table,
             camera,
             tiles_world: Vec::new(),
-            hints: Vec::new(),
+            markers: Vec::new(),
         })
     }
     pub fn add_robot(&mut self, pos_x: usize, pos_y: usize) {
@@ -551,26 +551,26 @@ impl<'window> MainState<'window> {
                     } => match mouse_btn {
                         sdl2::mouse::MouseButton::Middle => {
                             let pos = self.get_coords_from_pos(Point::new(x, y));
-                            self.hints.push(Hint::new(pos.0, pos.1));
+                            self.markers.push(Marker::new(pos.0, pos.1));
 
                             self.worlds.get_mut(ORD_OVERLAY_HINT).unwrap().delete_all();
 
-                            for hint in &self.hints {
+                            for marker in &self.markers {
                                 self.worlds
                                     .get_mut(ORD_OVERLAY_HINT)
                                     .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(
-                                        hint.get_pos().1 as i32 * TILE_SIZE,
-                                        hint.get_pos().0 as i32 * TILE_SIZE,
+                                        marker.get_pos().1 as i32 * TILE_SIZE,
+                                        marker.get_pos().0 as i32 * TILE_SIZE,
                                     )))
                                     .with(Sprite {
                                         region: *self
                                             .sprite_table
                                             .0
-                                            .get(&TextureType::Overlay(OverlayType::TileHint))
+                                            .get(&TextureType::Overlay(OverlayType::TileMarker))
                                             .unwrap(),
-                                        texture_type: TextureType::Overlay(OverlayType::TileHint),
+                                        texture_type: TextureType::Overlay(OverlayType::TileMarker),
                                     })
                                     .build();
                             }
@@ -656,8 +656,8 @@ impl<'window> MainState<'window> {
         self.sprite_table
             .load_sprite(tt, Rect::new(x, y, width, height));
     }
-    pub fn get_hints(&self) -> Vec<Hint> {
-        self.hints.clone()
+    pub fn get_markers(&self) -> Vec<Marker> {
+        self.markers.clone()
     }
-    //TODO: implement deletion of hints
+    //TODO: implement deletion of markers
 }
