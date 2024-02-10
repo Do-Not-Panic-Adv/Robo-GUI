@@ -20,12 +20,14 @@ use texture_manager::SpriteTable;
 use std::path::Path;
 use std::time::Duration;
 
+use crate::hints::Hint;
 use crate::texture_manager::TextureType;
 
 //use oxagaudiotool::OxAgAudioTool;
 
 mod animation;
 mod components;
+mod hints;
 mod renderer;
 mod systems;
 pub mod texture_manager;
@@ -55,6 +57,7 @@ pub struct MainState<'window> {
     texture_creator: TextureCreator<WindowContext>,
     sprite_table: SpriteTable,
     camera: Camera,
+    hints: Vec<Hint>,
 }
 
 struct Camera {
@@ -138,6 +141,7 @@ impl<'window> MainState<'window> {
             sprite_table,
             camera,
             tiles_world: Vec::new(),
+            hints: Vec::new(),
         })
     }
     pub fn add_robot(&mut self, pos_x: usize, pos_y: usize) {
@@ -535,6 +539,15 @@ impl<'window> MainState<'window> {
                     } => {
                         self.camera.screen_offset.1 += TILE_SIZE;
                     }
+                    Event::MouseButtonDown {
+                        mouse_btn, x, y, ..
+                    } => match mouse_btn {
+                        sdl2::mouse::MouseButton::Middle => {
+                            let pos = self.get_coords_from_pos(Point::new(x, y));
+                            self.hints.push(Hint::new(pos.0, pos.1))
+                        }
+                        _ => {}
+                    },
                     Event::MouseMotion {
                         mousestate,
                         xrel,
@@ -552,13 +565,14 @@ impl<'window> MainState<'window> {
                             "Pointing: {:?} z:{:?}, camera offset: {:?}",
                             pos, self.camera.zoom_level, self.camera.screen_offset
                         );
-                        if self.tiles_world.len() >= pos.1 as usize
-                            && self.tiles_world[0].len() >= pos.0 as usize
-                        {}
-                        println!(
-                            "Pointing tile {:?}",
-                            self.tiles_world[pos.1 as usize][pos.0 as usize]
-                        )
+                        if self.tiles_world.len() > pos.1 as usize
+                            && self.tiles_world[0].len() > pos.0 as usize
+                        {
+                            println!(
+                                "Pointing tile {:?}",
+                                self.tiles_world[pos.1 as usize][pos.0 as usize]
+                            )
+                        }
                     }
                     _ => {}
                 }
@@ -601,4 +615,8 @@ impl<'window> MainState<'window> {
         self.sprite_table
             .load_sprite(tt, Rect::new(x, y, width, height));
     }
+    pub fn get_hints(&self) -> Vec<Hint> {
+        self.hints.clone()
+    }
+    //TODO: implement deletion of hints
 }
