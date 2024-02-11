@@ -175,6 +175,12 @@ impl<'window> MainState<'window> {
                 texture_type: TextureType::Robot,
             })
             .build();
+
+        // moves the camera relative to the start position of the robot
+        self.camera.screen_offset.0 =
+            -1 * pos_x as i32 * TILE_SIZE + self.canvas.output_size().unwrap().0 as i32 / 2;
+        self.camera.screen_offset.1 =
+            -1 * pos_y as i32 * TILE_SIZE + self.canvas.output_size().unwrap().1 as i32 / 2;
     }
 
     pub fn update_world(&mut self, world: Vec<Vec<Option<Tile>>>) {
