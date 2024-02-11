@@ -120,7 +120,7 @@ impl SpriteTable {
             ),
         );
         self.0.insert(
-            TextureType::Content(Content::Water(0)),
+            TextureType::Content(Content::Fish(0)),
             Rect::new(
                 TILE_SIZE * 4,
                 TILE_SIZE * 3,
