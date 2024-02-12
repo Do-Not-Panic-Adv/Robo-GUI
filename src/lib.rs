@@ -617,22 +617,16 @@ impl<'window> MainState<'window> {
                         if self.tiles_world.len() > pos.1 as usize
                             && self.tiles_world[0].len() > pos.0 as usize
                         {
-                            // hide this stuff
                             self.worlds.get_mut(ORD_OVERLAY_HOVER).unwrap().delete_all();
-                            self.worlds
-                                .get_mut(ORD_OVERLAY_HOVER)
-                                .unwrap()
-                                .create_entity()
-                                .with(Position(Point::new(pos.0 * TILE_SIZE, pos.1 * TILE_SIZE)))
-                                .with(Sprite {
-                                    region: *self
-                                        .sprite_table
-                                        .0
-                                        .get(&TextureType::Overlay(OverlayType::TileHover))
-                                        .unwrap(),
-                                    texture_type: TextureType::Overlay(OverlayType::TileHover),
-                                })
-                                .build();
+
+                            MainState::add_renderable(
+                                &mut self.worlds,
+                                &self.sprite_table,
+                                ORD_OVERLAY_HOVER,
+                                TextureType::Overlay(OverlayType::TileHover),
+                                pos.0,
+                                pos.1,
+                            );
                             //println!( "Pointing tile {:?}", self.tiles_world[pos.1 as usize][pos.0 as usize])
                         }
                     }
@@ -684,5 +678,24 @@ impl<'window> MainState<'window> {
 
     pub fn set_framerate(&mut self, framerate: u32) {
         self.framerate = framerate
+    }
+    pub(crate) fn add_renderable(
+        worlds: &mut Vec<World>,
+        sp: &SpriteTable,
+        ord: usize,
+        tt: TextureType,
+        x: i32,
+        y: i32,
+    ) {
+        worlds
+            .get_mut(ord)
+            .unwrap()
+            .create_entity()
+            .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+            .with(Sprite {
+                region: *sp.0.get(&tt).unwrap(),
+                texture_type: tt,
+            })
+            .build();
     }
 }
