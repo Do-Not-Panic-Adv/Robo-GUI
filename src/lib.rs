@@ -13,11 +13,12 @@ use sdl2::event::Event;
 use sdl2::image::{InitFlag, LoadTexture};
 use sdl2::keyboard::Keycode;
 use sdl2::rect::{Point, Rect};
-use specs::{Builder, Dispatcher, DispatcherBuilder, Entity, World, WorldExt};
+use specs::{Builder, Dispatcher, DispatcherBuilder, World, WorldExt};
 
 use texture_manager::SpriteTable;
 
 use std::path::Path;
+use std::thread;
 use std::time::Duration;
 
 use crate::markers::Marker;
@@ -481,7 +482,7 @@ impl<'window> MainState<'window> {
                 let dir;
                 if (coords.0 as i32 - last.0 as i32) > 0 {
                     dir = Some(Direction::Down);
-                } else if (coords.0 as i32 - last.0 as i32) > 0 {
+                } else if (coords.0 as i32 - last.0 as i32) < 0 {
                     dir = Some(Direction::Up);
                 } else if (coords.1 as i32 - last.1 as i32) > 0 {
                     dir = Some(Direction::Right);
@@ -496,10 +497,16 @@ impl<'window> MainState<'window> {
                     .get_mut(ORD_ROBOT)
                     .unwrap()
                     .insert(Some(dir.clone()));
-                //self.game_world.insert(dir.clone());
             }
             None => {}
         };
+    }
+
+    fn robot_stop(&mut self) {
+        self.worlds
+            .get_mut(ORD_ROBOT)
+            .unwrap()
+            .insert(Some(None::<Direction>));
     }
 
     pub fn tick(&mut self) -> Result<(), String> {
@@ -672,4 +679,6 @@ impl<'window> MainState<'window> {
         self.markers.clone()
     }
     //TODO: implement deletion of markers
+
+    pub fn wait(&mut self) {}
 }
