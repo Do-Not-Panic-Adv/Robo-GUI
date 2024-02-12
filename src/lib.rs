@@ -1,6 +1,7 @@
 use components::drawable_components::{Position, Sprite};
 use components::movement_components::Velocity;
 
+use markers::Markers;
 use renderer::render;
 use robotics_lib::interface::Direction;
 use robotics_lib::world::tile::{Content, Tile};
@@ -17,6 +18,7 @@ use specs::{Builder, Dispatcher, DispatcherBuilder, World, WorldExt};
 
 use texture_manager::SpriteTable;
 
+use std::collections::HashMap;
 use std::path::Path;
 use std::thread;
 use std::time::Duration;
@@ -57,7 +59,7 @@ pub struct MainState<'window> {
     //Provare a creare una structure per salvare le texture con Rc<RefCell>>
     sprite_table: SpriteTable,
     camera: Camera,
-    markers: Vec<Marker>, // consider changing this to an hashmap
+    markers: Markers, // consider changing this to an hashmap
     robot_speed: i32,
     framerate: u32,
 }
@@ -155,7 +157,7 @@ impl<'window> MainState<'window> {
             sprite_table,
             camera,
             tiles_world: Vec::new(),
-            markers: Vec::new(),
+            markers: Markers::new(),
             robot_speed,
             framerate: 60,
         })
@@ -572,18 +574,18 @@ impl<'window> MainState<'window> {
                     } => match mouse_btn {
                         sdl2::mouse::MouseButton::Middle => {
                             let pos = self.get_coords_from_pos(Point::new(x, y));
-                            self.markers.push(Marker::new(pos.0, pos.1));
+                            self.markers.toggle(pos);
 
                             self.worlds.get_mut(ORD_OVERLAY_HINT).unwrap().delete_all();
 
-                            for marker in &self.markers {
+                            for marker in &self.markers.get_all() {
                                 self.worlds
                                     .get_mut(ORD_OVERLAY_HINT)
                                     .unwrap()
                                     .create_entity()
                                     .with(Position(Point::new(
-                                        marker.get_pos().1 as i32 * TILE_SIZE,
-                                        marker.get_pos().0 as i32 * TILE_SIZE,
+                                        marker.0 .1 as i32 * TILE_SIZE,
+                                        marker.0 .0 as i32 * TILE_SIZE,
                                     )))
                                     .with(Sprite {
                                         region: *self
@@ -675,8 +677,8 @@ impl<'window> MainState<'window> {
         self.sprite_table
             .load_sprite(tt, Rect::new(x, y, width, height));
     }
-    pub fn get_markers(&self) -> Vec<Marker> {
-        self.markers.clone()
+    pub fn get_markers(&self) -> Vec<((i32, i32), Marker)> {
+        self.markers.get_all()
     }
     //TODO: implement deletion of markers
 
