@@ -491,7 +491,7 @@ impl<'window> MainState<'window> {
                 } else if (coords.1 as i32 - last.1 as i32) < 0 {
                     dir = Some(Direction::Left);
                 } else {
-                    println!("Not moved");
+                    //println!("Not moved");
                     dir = None
                 }
 
