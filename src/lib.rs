@@ -59,6 +59,7 @@ pub struct MainState<'window> {
     camera: Camera,
     markers: Vec<Marker>, // consider changing this to an hashmap
     robot_speed: i32,
+    framerate: u32,
 }
 
 struct Camera {
@@ -156,6 +157,7 @@ impl<'window> MainState<'window> {
             tiles_world: Vec::new(),
             markers: Vec::new(),
             robot_speed,
+            framerate: 60,
         })
     }
     pub fn add_robot(&mut self, pos_x: usize, pos_y: usize) {
@@ -661,7 +663,7 @@ impl<'window> MainState<'window> {
 
             self.canvas.present();
 
-            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / self.framerate));
         }
 
         Ok(())
@@ -680,5 +682,7 @@ impl<'window> MainState<'window> {
     }
     //TODO: implement deletion of markers
 
-    pub fn wait(&mut self) {}
+    pub fn set_framerate(&mut self, framerate: u32) {
+        self.framerate = framerate
+    }
 }
