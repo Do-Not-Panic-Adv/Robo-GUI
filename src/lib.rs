@@ -615,6 +615,7 @@ impl<'window> MainState<'window> {
                         if self.tiles_world.len() > pos.1 as usize
                             && self.tiles_world[0].len() > pos.0 as usize
                         {
+                            // hide this stuff
                             self.worlds.get_mut(ORD_OVERLAY_HOVER).unwrap().delete_all();
                             self.worlds
                                 .get_mut(ORD_OVERLAY_HOVER)
@@ -630,10 +631,7 @@ impl<'window> MainState<'window> {
                                     texture_type: TextureType::Overlay(OverlayType::TileHover),
                                 })
                                 .build();
-                            println!(
-                                "Pointing tile {:?}",
-                                self.tiles_world[pos.1 as usize][pos.0 as usize]
-                            )
+                            //println!( "Pointing tile {:?}", self.tiles_world[pos.1 as usize][pos.0 as usize])
                         }
                     }
                     _ => {}
