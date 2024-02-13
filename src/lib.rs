@@ -619,7 +619,7 @@ impl<'window> MainState<'window> {
                         {
                             self.worlds.get_mut(ORD_OVERLAY_HOVER).unwrap().delete_all();
 
-                            MainState::add_renderable(
+                            MainState::add_drawable(
                                 &mut self.worlds,
                                 &self.sprite_table,
                                 ORD_OVERLAY_HOVER,
@@ -679,7 +679,7 @@ impl<'window> MainState<'window> {
     pub fn set_framerate(&mut self, framerate: u32) {
         self.framerate = framerate
     }
-    pub(crate) fn add_renderable(
+    pub(crate) fn add_drawable(
         worlds: &mut Vec<World>,
         sp: &SpriteTable,
         ord: usize,
