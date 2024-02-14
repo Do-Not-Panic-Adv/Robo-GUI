@@ -203,265 +203,169 @@ impl<'window> MainState<'window> {
             for cols in rows {
                 match cols {
                     Some(t) => {
-                        self.worlds
-                            .get_mut(ORD_TILES)
-                            .unwrap()
-                            .create_entity()
-                            .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                            .with(Sprite {
-                                region: *self
-                                    .sprite_table
-                                    .0
-                                    .get(&TextureType::Tile(t.tile_type))
-                                    .unwrap(),
-                                texture_type: TextureType::Tile(t.tile_type),
-                            })
-                            .build();
+                        MainState::add_drawable(
+                            &mut self.worlds,
+                            &self.sprite_table,
+                            ORD_TILES,
+                            TextureType::Tile(t.tile_type),
+                            x,
+                            y,
+                        );
                         match &t.content {
                             Content::None => {}
                             Content::Rock(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Rock(0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Rock(0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Rock(0)),
+                                    x,
+                                    y,
+                                );
                             }
                             Content::Tree(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Tree(0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Tree(0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Tree(0)),
+                                    x,
+                                    y,
+                                );
                             }
                             Content::Garbage(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Garbage(0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Garbage(0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Garbage(0)),
+                                    x,
+                                    y,
+                                );
                             }
                             Content::Fire => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Fire))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Fire),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Fire),
+                                    x,
+                                    y,
+                                );
                             }
                             Content::Coin(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Coin(0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Coin(0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Coin(0)),
+                                    x,
+                                    y,
+                                );
                             }
                             Content::Bin(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Bin(0..0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Bin(0..0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Bin(0..0)),
+                                    x,
+                                    y,
+                                );
                             }
                             Content::Crate(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Crate(0..0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Crate(0..0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Crate(0..0)),
+                                    x,
+                                    y,
+                                );
                             }
 
                             Content::Bank(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Bank(0..0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Bank(0..0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Bank(0..0)),
+                                    x,
+                                    y,
+                                );
                             }
 
                             Content::Water(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Water(0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Water(0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Water(0)),
+                                    x,
+                                    y,
+                                );
                             }
 
                             Content::Market(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Market(0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Market(0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Market(0)),
+                                    x,
+                                    y,
+                                );
                             }
                             Content::Fish(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Fish(0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Fish(0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Fish(0)),
+                                    x,
+                                    y,
+                                );
                             }
                             Content::Building => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Building))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Building),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Building),
+                                    x,
+                                    y,
+                                );
                             }
                             Content::Bush(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Bush(0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Bush(0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Bush(0)),
+                                    x,
+                                    y,
+                                );
                             }
 
                             Content::JollyBlock(_) => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::JollyBlock(0)))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::JollyBlock(0)),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::JollyBlock(0)),
+                                    x,
+                                    y,
+                                );
                             }
                             Content::Scarecrow => {
-                                self.worlds
-                                    .get_mut(ORD_CONTENT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Content(Content::Scarecrow))
-                                            .unwrap(),
-                                        texture_type: TextureType::Content(Content::Scarecrow),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_CONTENT,
+                                    TextureType::Content(Content::Scarecrow),
+                                    x,
+                                    y,
+                                );
                             }
                         }
                     }
@@ -595,23 +499,14 @@ impl<'window> MainState<'window> {
                             self.worlds.get_mut(ORD_OVERLAY_HINT).unwrap().delete_all();
 
                             for marker in &self.markers.get_all() {
-                                self.worlds
-                                    .get_mut(ORD_OVERLAY_HINT)
-                                    .unwrap()
-                                    .create_entity()
-                                    .with(Position(Point::new(
-                                        marker.0 .1 as i32 * TILE_SIZE,
-                                        marker.0 .0 as i32 * TILE_SIZE,
-                                    )))
-                                    .with(Sprite {
-                                        region: *self
-                                            .sprite_table
-                                            .0
-                                            .get(&TextureType::Overlay(OverlayType::TileMarker))
-                                            .unwrap(),
-                                        texture_type: TextureType::Overlay(OverlayType::TileMarker),
-                                    })
-                                    .build();
+                                MainState::add_drawable(
+                                    &mut self.worlds,
+                                    &self.sprite_table,
+                                    ORD_OVERLAY_HINT,
+                                    TextureType::Overlay(OverlayType::TileMarker),
+                                    marker.0 .1,
+                                    marker.0 .0,
+                                );
                             }
                         }
                         _ => {}

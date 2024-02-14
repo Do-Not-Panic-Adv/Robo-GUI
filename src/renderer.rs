@@ -21,7 +21,6 @@ pub(crate) fn render(
         let (window_width, window_height) = canvas.output_size().unwrap();
 
         if camera.chase_robot && sprite.texture_type == TextureType::Robot {
-            println!("{:?}", camera);
             camera.robot_position = pos.0;
             camera.screen_offset = (window_width as i32 / 2, window_height as i32 / 2);
         }
