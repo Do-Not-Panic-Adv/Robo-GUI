@@ -18,9 +18,7 @@ use specs::{Builder, Dispatcher, DispatcherBuilder, World, WorldExt};
 
 use texture_manager::SpriteTable;
 
-use std::collections::HashMap;
 use std::path::Path;
-use std::thread;
 use std::time::Duration;
 
 use crate::markers::Marker;
@@ -69,8 +67,7 @@ struct Camera {
     screen_offset: (i32, i32),
     chase_robot: bool,
     zoom_level: i32,
-    curson_position: Point,
-    update_position: bool,
+    robot_position: Point,
 }
 
 impl<'window> MainState<'window> {
@@ -138,8 +135,7 @@ impl<'window> MainState<'window> {
             screen_offset: (0, 0),
             chase_robot: true,
             zoom_level: 0,
-            curson_position: Point::new(0, 0),
-            update_position: false,
+            robot_position: Point::new(0, 0),
         };
 
         let mut worlds: Vec<World> = Vec::new();
@@ -543,11 +539,9 @@ impl<'window> MainState<'window> {
                         return Err("quit".to_string());
                     }
                     Event::MouseWheel { y: 1, .. } => {
-                        self.camera.update_position = true;
                         self.camera.zoom_level += 1;
                     }
                     Event::MouseWheel { y: -1, .. } => {
-                        self.camera.update_position = true;
                         self.camera.zoom_level -= 1;
                     }
                     Event::KeyDown {
@@ -577,6 +571,19 @@ impl<'window> MainState<'window> {
                         ..
                     } => {
                         self.camera.screen_offset.1 += TILE_SIZE;
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::Space),
+                        repeat: false,
+                        ..
+                    } => {
+                        let (window_width, window_height) = self.canvas.output_size().unwrap();
+                        self.camera.chase_robot = !self.camera.chase_robot;
+                        self.camera.screen_offset = (
+                            -self.camera.robot_position.x() + window_width as i32 / 2,
+                            -self.camera.robot_position.y() + window_height as i32 / 2,
+                        );
+                        self.camera.zoom_level = 0
                     }
                     Event::MouseButtonDown {
                         mouse_btn, x, y, ..
@@ -617,11 +624,6 @@ impl<'window> MainState<'window> {
                         x,
                         ..
                     } => {
-                        if true {
-                            self.camera.curson_position = Point::new(x, y);
-                            self.camera.update_position = false;
-                        }
-
                         if mousestate.right() {
                             self.camera.screen_offset.0 += xrel;
                             self.camera.screen_offset.1 += yrel;
@@ -663,7 +665,7 @@ impl<'window> MainState<'window> {
                     &mut self.canvas,
                     &texture,
                     world.system_data(),
-                    &self.camera,
+                    &mut self.camera,
                 );
             }
 
