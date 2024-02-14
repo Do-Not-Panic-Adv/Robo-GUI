@@ -7,3 +7,4 @@
 - Middle Click: Toggle a marker
 - Esc: Quit the programm
 - Space: Toggle robot chase
+- R: Reset the screen offset

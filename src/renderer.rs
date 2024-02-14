@@ -61,9 +61,10 @@ pub(crate) fn calculate_screen_position(
                     / TILE_SIZE,
             )
     } else {
-        component_pos + Point::new(camera.screen_offset.0, camera.screen_offset.1) //mouse mov
-        + Point::new(
+        component_pos //+ Point::new(camera.screen_offset.0, camera.screen_offset.1) //mouse mov
+        + Point::new( camera.screen_offset.0 +
         camera.zoom_level * (screen_position.x()- ((window_width as i32/2)- camera.screen_offset.0))/ TILE_SIZE ,
+        camera.screen_offset.1 +
         camera.zoom_level * (screen_position.y()- ((window_height as i32/2) - camera.screen_offset.1))/ TILE_SIZE ,
         )
     }
@@ -73,15 +74,40 @@ pub(crate) fn calculate_map_coords(
     camera: &Camera,
     canvas: &WindowCanvas,
 ) -> Point {
-    let tmp = screen_position
-        //- Point::new(window_width as i32 / 2, window_height as i32 / 2)
-    - Point::new(camera.screen_offset.0, camera.screen_offset.1)
-        + Point::new(
+    let tmp;
+    let (window_width, window_height) = canvas.output_size().unwrap();
+
+    if camera.chase_robot {
+        tmp = Point::new(
+            (TILE_SIZE
+                * (screen_position.x() - camera.screen_offset.0 + camera.robot_position.x())
+                + camera.zoom_level
+                    * (window_width as i32 / 2 - camera.screen_offset.0
+                        + camera.robot_position.x()))
+                / (camera.zoom_level + TILE_SIZE),
+            (TILE_SIZE
+                * (screen_position.y() - camera.screen_offset.1 + camera.robot_position.x())
+                + camera.zoom_level
+                    * (window_height as i32 / 2 - camera.screen_offset.1
+                        + camera.robot_position.y()))
+                / (camera.zoom_level + TILE_SIZE),
+        ) + Point::new(
+            (TILE_SIZE + camera.zoom_level) / 2,
+            (TILE_SIZE + camera.zoom_level) / 2,
+        )
+    } else {
+        tmp = Point::new(
+            (TILE_SIZE * (screen_position.x() - camera.screen_offset.0)
+                + camera.zoom_level * (window_width as i32 / 2 - camera.screen_offset.0))
+                / (camera.zoom_level + TILE_SIZE),
+            (TILE_SIZE * (screen_position.y() - camera.screen_offset.1)
+                + camera.zoom_level * (window_height as i32 / 2 - camera.screen_offset.1))
+                / (camera.zoom_level + TILE_SIZE),
+        ) + Point::new(
             (TILE_SIZE + camera.zoom_level) / 2,
             (TILE_SIZE + camera.zoom_level) / 2,
         );
-    Point::new(
-        tmp.x / (TILE_SIZE + camera.zoom_level),
-        tmp.y / (TILE_SIZE + camera.zoom_level),
-    )
+    }
+    Point::new(tmp.x / (TILE_SIZE), tmp.y / (TILE_SIZE))
+    //tmp
 }

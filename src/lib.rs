@@ -133,7 +133,7 @@ impl<'window> MainState<'window> {
 
         let camera = Camera {
             screen_offset: (0, 0),
-            chase_robot: true,
+            chase_robot: false,
             zoom_level: 0,
             robot_position: Point::new(0, 0),
         };
@@ -183,8 +183,10 @@ impl<'window> MainState<'window> {
             .build();
 
         // moves the camera relative to the start position of the robot
-        //self.camera.screen_offset.0 = -1 * pos_x as i32 * TILE_SIZE + self.canvas.output_size().unwrap().0 as i32 / 2;
-        //self.camera.screen_offset.1 = -1 * pos_y as i32 * TILE_SIZE + self.canvas.output_size().unwrap().1 as i32 / 2;
+        self.camera.screen_offset.0 =
+            -1 * pos_x as i32 * TILE_SIZE + self.canvas.output_size().unwrap().0 as i32 / 2;
+        self.camera.screen_offset.1 =
+            -1 * pos_y as i32 * TILE_SIZE + self.canvas.output_size().unwrap().1 as i32 / 2;
     }
 
     pub fn update_world(&mut self, world: Vec<Vec<Option<Tile>>>) {
@@ -446,7 +448,9 @@ impl<'window> MainState<'window> {
                         self.camera.zoom_level += 1;
                     }
                     Event::MouseWheel { y: -1, .. } => {
-                        self.camera.zoom_level -= 1;
+                        if self.camera.zoom_level > -31 {
+                            self.camera.zoom_level -= 1;
+                        }
                     }
                     Event::KeyDown {
                         keycode: Some(Keycode::Left),
@@ -475,6 +479,13 @@ impl<'window> MainState<'window> {
                         ..
                     } => {
                         self.camera.screen_offset.1 += TILE_SIZE;
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::R),
+                        repeat: false,
+                        ..
+                    } => {
+                        self.camera.screen_offset = (0, 0);
                     }
                     Event::KeyDown {
                         keycode: Some(Keycode::Space),
@@ -524,7 +535,7 @@ impl<'window> MainState<'window> {
                             self.camera.screen_offset.1 += yrel;
                         }
                         let pos = self.get_coords_from_pos(Point::new(x, y));
-                        //println!( "Pointing: {:?} z:{:?}, camera offset: {:?}", pos, self.camera.zoom_level, self.camera.screen_offset);
+                        // println!( "Pointing: {:?} z:{:?}, camera offset: {:?}", pos, self.camera.zoom_level, self.camera.screen_offset);
                         if self.tiles_world.len() > pos.1 as usize
                             && self.tiles_world[0].len() > pos.0 as usize
                         {
