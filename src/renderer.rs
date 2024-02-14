@@ -1,5 +1,3 @@
-use std::ops::Div;
-
 use crate::components::drawable_components::{Position, Sprite};
 use crate::{Camera, TILE_SIZE};
 
@@ -17,8 +15,6 @@ pub(crate) fn render(
     data: SystemData,
     camera: &Camera,
 ) -> Result<(), String> {
-    //USE MARKER COMPONENT TO IMPLEMENT SEPARATE RENDERER FOR THE ROBOT AND TILES
-
     for (pos, sprite) in (&data.0, &data.1).join() {
         //add check if the compomentent to be rendered is inside the viewport
 
@@ -31,10 +27,7 @@ pub(crate) fn render(
         //this represents the area of the screen on which the sprite region will be placed to.
         let screen_rect =
             Rect::from_center(screen_position, scaled_width as u32, scaled_height as u32);
-        //TODO: Create a function that a screen takes screen_position, zoom_level and tilesize are return
-        //the map coordinate and vice versa
 
-        //println!( "{:?} {:?} {:?}", screen_position, pos.0.div(TILE_SIZE), calculate_map_coords(screen_position, camera, canvas).div(TILE_SIZE));
         canvas.copy(&texture, sprite.region, screen_rect)?;
     }
 
@@ -49,11 +42,14 @@ pub(crate) fn calculate_screen_position(
     let (window_width, window_height) = canvas.output_size().unwrap();
     let screen_position = component_pos; // Point::new(window_width as i32 / 2, window_height as i32 / 2);
 
+    //let scaled_tile_size = TILE_SIZE + camera.zoom_level;
+    //let scaled_tile_diag = ((2 * scaled_tile_size.pow(2)) as f32).sqrt();
+
     component_pos + Point::new(camera.screen_offset.0, camera.screen_offset.1) //mouse mov
-        //- Point::new( (camera.zoom_level * TILE_SIZE) / 2, (camera.zoom_level * TILE_SIZE) / 2,)
+                                                                               //- Point::new( (camera.zoom_level * TILE_SIZE) / 2, (camera.zoom_level * TILE_SIZE) / 2,)
         + Point::new(
-            (camera.zoom_level * screen_position.x) / TILE_SIZE,
-            (camera.zoom_level * screen_position.y) / TILE_SIZE,
+        camera.zoom_level * (screen_position.x()- ((window_width as i32/2)- camera.screen_offset.0))/ TILE_SIZE ,
+        camera.zoom_level * (screen_position.y()- ((window_height as i32/2) - camera.screen_offset.1))/ TILE_SIZE ,
         )
 }
 pub(crate) fn calculate_map_coords(

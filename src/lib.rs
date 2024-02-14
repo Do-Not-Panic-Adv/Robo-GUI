@@ -64,10 +64,13 @@ pub struct MainState<'window> {
     framerate: u32,
 }
 
+#[derive(Debug)]
 struct Camera {
     screen_offset: (i32, i32),
     chase_robot: bool,
     zoom_level: i32,
+    curson_position: Point,
+    update_position: bool,
 }
 
 impl<'window> MainState<'window> {
@@ -135,6 +138,8 @@ impl<'window> MainState<'window> {
             screen_offset: (0, 0),
             chase_robot: true,
             zoom_level: 0,
+            curson_position: Point::new(0, 0),
+            update_position: false,
         };
 
         let mut worlds: Vec<World> = Vec::new();
@@ -182,10 +187,8 @@ impl<'window> MainState<'window> {
             .build();
 
         // moves the camera relative to the start position of the robot
-        self.camera.screen_offset.0 =
-            -1 * pos_x as i32 * TILE_SIZE + self.canvas.output_size().unwrap().0 as i32 / 2;
-        self.camera.screen_offset.1 =
-            -1 * pos_y as i32 * TILE_SIZE + self.canvas.output_size().unwrap().1 as i32 / 2;
+        //self.camera.screen_offset.0 = -1 * pos_x as i32 * TILE_SIZE + self.canvas.output_size().unwrap().0 as i32 / 2;
+        //self.camera.screen_offset.1 = -1 * pos_y as i32 * TILE_SIZE + self.canvas.output_size().unwrap().1 as i32 / 2;
     }
 
     pub fn update_world(&mut self, world: Vec<Vec<Option<Tile>>>) {
@@ -539,8 +542,14 @@ impl<'window> MainState<'window> {
                     } => {
                         return Err("quit".to_string());
                     }
-                    Event::MouseWheel { y: 1, .. } => self.camera.zoom_level += 1,
-                    Event::MouseWheel { y: -1, .. } => self.camera.zoom_level -= 1,
+                    Event::MouseWheel { y: 1, .. } => {
+                        self.camera.update_position = true;
+                        self.camera.zoom_level += 1;
+                    }
+                    Event::MouseWheel { y: -1, .. } => {
+                        self.camera.update_position = true;
+                        self.camera.zoom_level -= 1;
+                    }
                     Event::KeyDown {
                         keycode: Some(Keycode::Left),
                         repeat: false,
@@ -608,6 +617,11 @@ impl<'window> MainState<'window> {
                         x,
                         ..
                     } => {
+                        if true {
+                            self.camera.curson_position = Point::new(x, y);
+                            self.camera.update_position = false;
+                        }
+
                         if mousestate.right() {
                             self.camera.screen_offset.0 += xrel;
                             self.camera.screen_offset.1 += yrel;
