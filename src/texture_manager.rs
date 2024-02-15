@@ -294,26 +294,26 @@ impl SpriteTable {
             Rect::new(
                 TILE_SIZE * 5,
                 TILE_SIZE * 6,
-                TILE_SIZE as u32,
-                TILE_SIZE as u32,
+                TILE_SIZE as u32 * 3,
+                TILE_SIZE as u32 * 2,
             ),
         );
         self.0.insert(
             TextureType::Time(DayTime::Afternoon),
             Rect::new(
+                TILE_SIZE * 8,
                 TILE_SIZE * 6,
-                TILE_SIZE * 6,
-                TILE_SIZE as u32,
-                TILE_SIZE as u32,
+                TILE_SIZE as u32 * 3,
+                TILE_SIZE as u32 * 2,
             ),
         );
         self.0.insert(
             TextureType::Time(DayTime::Night),
             Rect::new(
-                TILE_SIZE * 7,
+                TILE_SIZE * 11,
                 TILE_SIZE * 6,
-                TILE_SIZE as u32,
-                TILE_SIZE as u32,
+                TILE_SIZE as u32 * 3,
+                TILE_SIZE as u32 * 2,
             ),
         );
         self.0.insert(
@@ -328,10 +328,10 @@ impl SpriteTable {
         self.0.insert(
             TextureType::EnvCondition(WeatherType::Rainy),
             Rect::new(
-                TILE_SIZE * 1,
-                TILE_SIZE * 7,
-                TILE_SIZE as u32,
-                TILE_SIZE as u32,
+                TILE_SIZE * 0,
+                TILE_SIZE * 8,
+                TILE_SIZE as u32 * 5,
+                TILE_SIZE as u32 * 3,
             ),
         );
         self.0.insert(
@@ -346,10 +346,10 @@ impl SpriteTable {
         self.0.insert(
             TextureType::EnvCondition(WeatherType::TrentinoSnow),
             Rect::new(
-                TILE_SIZE * 2,
-                TILE_SIZE * 7,
-                TILE_SIZE as u32,
-                TILE_SIZE as u32,
+                TILE_SIZE * 5,
+                TILE_SIZE * 8,
+                TILE_SIZE as u32 * 5,
+                TILE_SIZE as u32 * 3,
             ),
         );
         self.0.insert(
@@ -363,6 +363,7 @@ impl SpriteTable {
         );
     }
     //sovrascrive la sprite di un determinato tt
+    //TODO: rivedere
     pub fn load_sprite(&mut self, tt: TextureType, rect: Rect) {
         let _ = self.0.insert(tt, rect);
     }

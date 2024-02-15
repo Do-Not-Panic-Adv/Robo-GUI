@@ -494,8 +494,6 @@ impl<'window> MainState<'window> {
 
         //let grass_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("tiles") .join("grass.png"),)?;
 
-        //let _ = textures .add_texture(TextureType::Tile(TileType::Grass), &grass_texture) .clone();
-
         let mut texture = self.texture_creator.load_texture(
             Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("assets")
