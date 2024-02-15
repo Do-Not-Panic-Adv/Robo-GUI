@@ -2,7 +2,7 @@ use components::drawable_components::{Position, Sprite};
 use components::movement_components::Velocity;
 
 use markers::Markers;
-use renderer::render;
+use renderer::{calculate_map_coords, render};
 use robotics_lib::interface::Direction;
 use robotics_lib::world::tile::{Content, Tile};
 use sdl2::render::{Canvas, TextureCreator};
@@ -18,6 +18,7 @@ use specs::{Builder, Dispatcher, DispatcherBuilder, World, WorldExt};
 
 use texture_manager::SpriteTable;
 
+use std::ops::Neg;
 use std::path::Path;
 use std::time::Duration;
 
@@ -198,11 +199,29 @@ impl<'window> MainState<'window> {
         let mut y = 0;
         let mut x;
 
-        //cercare di sistemare sto schifo, aggiungere controlli per evitare di aggiungere entità
-        //che sono fuori dalla viewport
+        let min_coords = calculate_map_coords(Point::new(0, 0), &self.camera, &self.canvas);
+        let max_coords = calculate_map_coords(
+            Point::new(WIDTH as i32, HEIGHT as i32),
+            &self.camera,
+            &self.canvas,
+        );
+
         for rows in world.iter() {
             x = 0;
+            if y > max_coords.y() + 1 {
+                break;
+            }
+            //if y < min_coords.y() - 1 {
+            //   y = min_coords.y() - 1
+            //}
             for cols in rows {
+                if x > max_coords.x() + 1 {
+                    break;
+                }
+                // problemi con questi
+                //if x < min_coords.x() - 1 {
+                //   x = min_coords.x() - 1
+                //}
                 match cols {
                     Some(t) => {
                         MainState::add_drawable(
@@ -425,7 +444,7 @@ impl<'window> MainState<'window> {
 
         //let _ = textures .add_texture(TextureType::Tile(TileType::Grass), &grass_texture) .clone();
 
-        let texture = self.texture_creator.load_texture(
+        let mut texture = self.texture_creator.load_texture(
             Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("assets")
                 .join("texture.png"),
@@ -569,7 +588,7 @@ impl<'window> MainState<'window> {
             for world in self.worlds.iter_mut() {
                 let _ = render(
                     &mut self.canvas,
-                    &texture,
+                    &mut texture,
                     world.system_data(),
                     &mut self.camera,
                 );
