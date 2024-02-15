@@ -42,11 +42,11 @@ pub const TILE_SIZE: i32 = 32;
 
 const ORD_TILES: usize = 0;
 const ORD_CONTENT: usize = 1;
-const ORD_OVERLAY_HOVER: usize = 2;
-const ORD_OVERLAY_HINT: usize = 3;
-const ORD_ROBOT: usize = 4;
-const ORD_WEATHER: usize = 5;
-const ORD_TIME: usize = 6;
+const ORD_ROBOT: usize = 2;
+const ORD_WEATHER: usize = 3;
+const ORD_TIME: usize = 4;
+const ORD_OVERLAY_HINT: usize = 5;
+const ORD_OVERLAY_HOVER: usize = 6;
 
 pub struct MainState<'window> {
     sdl_context: Sdl,
@@ -151,11 +151,11 @@ impl<'window> MainState<'window> {
         let mut worlds: Vec<World> = Vec::new();
         worlds.push(game_world);
         worlds.push(content_world);
-        worlds.push(overlay_world_hover);
-        worlds.push(overlay_world_markers);
         worlds.push(robot_world);
         worlds.push(weather_world);
         worlds.push(time_world);
+        worlds.push(overlay_world_markers);
+        worlds.push(overlay_world_hover);
 
         if robot_speed > 6 || robot_speed < 1 {
             return Err("speed has to be <= 6 and >=1".to_string());
