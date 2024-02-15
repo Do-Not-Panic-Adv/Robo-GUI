@@ -4,6 +4,7 @@ use components::movement_components::Velocity;
 use markers::Markers;
 use renderer::{calculate_map_coords, render};
 use robotics_lib::interface::Direction;
+use robotics_lib::world::environmental_conditions::DayTime;
 use robotics_lib::world::tile::{Content, Tile};
 use sdl2::render::{Canvas, TextureCreator};
 use sdl2::video::{Window, WindowContext};
@@ -18,7 +19,6 @@ use specs::{Builder, Dispatcher, DispatcherBuilder, World, WorldExt};
 
 use texture_manager::SpriteTable;
 
-use std::ops::Neg;
 use std::path::Path;
 use std::time::Duration;
 
@@ -34,17 +34,19 @@ mod renderer;
 mod systems;
 pub mod texture_manager;
 
-const HEIGHT: u32 = 480;
 const WIDTH: u32 = 800;
+const HEIGHT: u32 = 480;
 
 pub const TILE_SIZE: i32 = 32;
-const ROBOT_SPEED: i32 = 6;
+//const ROBOT_SPEED: i32 = 6;
 
 const ORD_TILES: usize = 0;
 const ORD_CONTENT: usize = 1;
 const ORD_OVERLAY_HOVER: usize = 2;
 const ORD_OVERLAY_HINT: usize = 3;
 const ORD_ROBOT: usize = 4;
+const ORD_WEATHER: usize = 5;
+const ORD_TIME: usize = 6;
 
 pub struct MainState<'window> {
     sdl_context: Sdl,
@@ -58,7 +60,7 @@ pub struct MainState<'window> {
     //Provare a creare una structure per salvare le texture con Rc<RefCell>>
     sprite_table: SpriteTable,
     camera: Camera,
-    markers: Markers, // consider changing this to an hashmap
+    markers: Markers,
     robot_speed: i32,
     framerate: u32,
 }
@@ -116,6 +118,13 @@ impl<'window> MainState<'window> {
         overlay_world_markers.register::<Position>();
         overlay_world_markers.register::<Sprite>();
 
+        let mut weather_world = World::new();
+        weather_world.register::<Position>();
+        weather_world.register::<Sprite>();
+        let mut time_world = World::new();
+        time_world.register::<Position>();
+        time_world.register::<Sprite>();
+
         robot_world.insert(Some(Direction::Right));
 
         //chiama i system relativi al robot
@@ -145,8 +154,10 @@ impl<'window> MainState<'window> {
         worlds.push(overlay_world_hover);
         worlds.push(overlay_world_markers);
         worlds.push(robot_world);
+        worlds.push(weather_world);
+        worlds.push(time_world);
 
-        if (robot_speed > 6 || robot_speed < 1) {
+        if robot_speed > 6 || robot_speed < 1 {
             return Err("speed has to be <= 6 and >=1".to_string());
         }
 
@@ -199,7 +210,7 @@ impl<'window> MainState<'window> {
         let mut y = 0;
         let mut x;
 
-        let min_coords = calculate_map_coords(Point::new(0, 0), &self.camera, &self.canvas);
+        //let min_coords = calculate_map_coords(Point::new(0, 0), &self.camera, &self.canvas);
         let max_coords = calculate_map_coords(
             Point::new(WIDTH as i32, HEIGHT as i32),
             &self.camera,
@@ -429,6 +440,41 @@ impl<'window> MainState<'window> {
             }
             None => {}
         };
+    }
+    pub fn update_time_of_day(&mut self, time: DayTime) {
+        let limits = self.get_drawable_indexes();
+        self.worlds.get_mut(ORD_TIME).unwrap().delete_all();
+        println!(
+            "{:?}",
+            self.sprite_table
+                .0
+                .get(&TextureType::Time(DayTime::Morning))
+        );
+        //for x in limits.0.x()..limits.1.x() {
+        //   for y in limits.0.y()..limits.1.y() {
+        MainState::add_drawable(
+            &mut self.worlds,
+            &self.sprite_table,
+            ORD_TIME,
+            TextureType::Time(time),
+            0,
+            0,
+        );
+        // }
+        // }
+    }
+
+    /// Returns the get drawable indexes of this [`MainState`].
+    //min e max
+    fn get_drawable_indexes(&mut self) -> (Point, Point) {
+        let (window_width, window_height) = self.canvas.output_size().unwrap();
+        let min_coords = calculate_map_coords(Point::new(0, 0), &self.camera, &self.canvas);
+        let max_coords = calculate_map_coords(
+            Point::new(window_width as i32, window_height as i32),
+            &self.camera,
+            &self.canvas,
+        );
+        (min_coords, max_coords)
     }
 
     fn robot_stop(&mut self) {

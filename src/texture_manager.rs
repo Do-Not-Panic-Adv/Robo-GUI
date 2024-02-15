@@ -1,12 +1,16 @@
 use std::{collections::HashMap, hash::Hash};
 
-use robotics_lib::world::tile::{Content, TileType};
+use robotics_lib::world::{
+    environmental_conditions::{DayTime, WeatherType},
+    tile::{Content, TileType},
+};
 use sdl2::{rect::Rect, render::Texture};
 
 use crate::TILE_SIZE;
 
 pub(crate) struct Textures<'texture>(pub HashMap<TextureType, Vec<&'texture Texture<'texture>>>);
 
+#[derive(Debug)]
 pub(crate) struct SpriteTable(pub HashMap<TextureType, Rect>);
 impl SpriteTable {
     pub fn new() -> Self {
@@ -285,6 +289,33 @@ impl SpriteTable {
                 TILE_SIZE as u32,
             ),
         );
+        self.0.insert(
+            TextureType::Time(DayTime::Morning),
+            Rect::new(
+                TILE_SIZE * 5,
+                TILE_SIZE * 6,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Time(DayTime::Afternoon),
+            Rect::new(
+                TILE_SIZE * 6,
+                TILE_SIZE * 6,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::Time(DayTime::Night),
+            Rect::new(
+                TILE_SIZE * 7,
+                TILE_SIZE * 6,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
     }
     //sovrascrive la sprite di un determinato tt
     pub fn load_sprite(&mut self, tt: TextureType, rect: Rect) {
@@ -307,6 +338,8 @@ pub enum TextureType {
     Tile(TileType),
     Content(Content),
     Overlay(OverlayType),
+    Time(DayTime),
+    EnvCondition(WeatherType),
 }
 
 #[derive(Debug, PartialEq)]
@@ -321,6 +354,8 @@ impl PartialEq for TextureType {
             (Self::Tile(l0), Self::Tile(r0)) => l0 == r0,
             (Self::Content(l0), Self::Content(r0)) => l0 == r0,
             (Self::Overlay(l0), Self::Overlay(r0)) => l0 == r0,
+            (Self::Time(l0), Self::Time(r0)) => l0 == r0,
+            (Self::EnvCondition(l0), Self::EnvCondition(r0)) => l0 == r0,
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
         }
     }

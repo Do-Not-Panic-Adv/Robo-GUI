@@ -12,7 +12,7 @@ type SystemData<'a> = (ReadStorage<'a, Position>, ReadStorage<'a, Sprite>);
 
 pub(crate) fn render(
     canvas: &mut WindowCanvas,
-    texture: &Texture,
+    texture: &mut Texture,
     data: SystemData,
     camera: &mut Camera,
 ) -> Result<(), String> {
@@ -35,7 +35,12 @@ pub(crate) fn render(
         let screen_rect =
             Rect::from_center(screen_position, scaled_width as u32, scaled_height as u32);
 
-        canvas.copy(&texture, sprite.region, screen_rect)?;
+        match sprite.texture_type {
+            TextureType::Time(_) => canvas.copy(&texture, sprite.region, None)?,
+            _ => {
+                canvas.copy(&texture, sprite.region, screen_rect)?;
+            }
+        }
     }
 
     Ok(())

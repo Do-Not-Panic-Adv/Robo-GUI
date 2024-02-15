@@ -4,12 +4,6 @@ use specs::{Component, VecStorage};
 use crate::texture_manager::TextureType;
 
 #[derive(Debug)]
-pub(crate) enum SpriteType {
-    Robot,
-    Tile,
-}
-
-#[derive(Debug)]
 pub struct Position(pub(crate) Point);
 
 impl Component for Position {
