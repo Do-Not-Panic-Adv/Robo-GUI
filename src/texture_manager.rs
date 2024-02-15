@@ -337,7 +337,7 @@ impl SpriteTable {
         self.0.insert(
             TextureType::EnvCondition(WeatherType::Sunny),
             Rect::new(
-                TILE_SIZE * 2,
+                TILE_SIZE * 3,
                 TILE_SIZE * 7,
                 TILE_SIZE as u32,
                 TILE_SIZE as u32,
@@ -355,7 +355,7 @@ impl SpriteTable {
         self.0.insert(
             TextureType::EnvCondition(WeatherType::TropicalMonsoon),
             Rect::new(
-                TILE_SIZE * 2,
+                TILE_SIZE * 3,
                 TILE_SIZE * 7,
                 TILE_SIZE as u32,
                 TILE_SIZE as u32,
