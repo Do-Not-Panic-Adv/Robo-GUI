@@ -316,6 +316,51 @@ impl SpriteTable {
                 TILE_SIZE as u32,
             ),
         );
+        self.0.insert(
+            TextureType::EnvCondition(WeatherType::Foggy),
+            Rect::new(
+                TILE_SIZE * 0,
+                TILE_SIZE * 7,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::EnvCondition(WeatherType::Rainy),
+            Rect::new(
+                TILE_SIZE * 1,
+                TILE_SIZE * 7,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::EnvCondition(WeatherType::Sunny),
+            Rect::new(
+                TILE_SIZE * 2,
+                TILE_SIZE * 7,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::EnvCondition(WeatherType::TrentinoSnow),
+            Rect::new(
+                TILE_SIZE * 2,
+                TILE_SIZE * 7,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
+        self.0.insert(
+            TextureType::EnvCondition(WeatherType::TropicalMonsoon),
+            Rect::new(
+                TILE_SIZE * 2,
+                TILE_SIZE * 7,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
     }
     //sovrascrive la sprite di un determinato tt
     pub fn load_sprite(&mut self, tt: TextureType, rect: Rect) {

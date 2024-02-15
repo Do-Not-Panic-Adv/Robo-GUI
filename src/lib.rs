@@ -4,7 +4,7 @@ use components::movement_components::Velocity;
 use markers::Markers;
 use renderer::{calculate_map_coords, render};
 use robotics_lib::interface::Direction;
-use robotics_lib::world::environmental_conditions::DayTime;
+use robotics_lib::world::environmental_conditions::{DayTime, WeatherType};
 use robotics_lib::world::tile::{Content, Tile};
 use sdl2::render::{Canvas, TextureCreator};
 use sdl2::video::{Window, WindowContext};
@@ -444,12 +444,6 @@ impl<'window> MainState<'window> {
     pub fn update_time_of_day(&mut self, time: DayTime) {
         let limits = self.get_drawable_indexes();
         self.worlds.get_mut(ORD_TIME).unwrap().delete_all();
-        println!(
-            "{:?}",
-            self.sprite_table
-                .0
-                .get(&TextureType::Time(DayTime::Morning))
-        );
         //for x in limits.0.x()..limits.1.x() {
         //   for y in limits.0.y()..limits.1.y() {
         MainState::add_drawable(
@@ -462,6 +456,17 @@ impl<'window> MainState<'window> {
         );
         // }
         // }
+    }
+    pub fn update_weather(&mut self, w: WeatherType) {
+        self.worlds.get_mut(ORD_WEATHER).unwrap().delete_all();
+        MainState::add_drawable(
+            &mut self.worlds,
+            &self.sprite_table,
+            ORD_WEATHER,
+            TextureType::EnvCondition(w),
+            0,
+            0,
+        );
     }
 
     /// Returns the get drawable indexes of this [`MainState`].

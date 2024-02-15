@@ -36,7 +36,9 @@ pub(crate) fn render(
             Rect::from_center(screen_position, scaled_width as u32, scaled_height as u32);
 
         match sprite.texture_type {
-            TextureType::Time(_) => canvas.copy(&texture, sprite.region, None)?,
+            TextureType::Time(_) | TextureType::EnvCondition(_) => {
+                canvas.copy(&texture, sprite.region, None)?
+            }
             _ => {
                 canvas.copy(&texture, sprite.region, screen_rect)?;
             }
