@@ -205,23 +205,24 @@ impl<'window> MainState<'window> {
             &self.camera,
             &self.canvas,
         );
-
+        //if y < min_coords.y() / 2 {
+        //   y = min_coords.y() / 2
+        //}
         for rows in world.iter() {
             x = 0;
-            if y > max_coords.y() + 1 {
+
+            if y > max_coords.y() * 2 {
                 break;
             }
-            //if y < min_coords.y() - 1 {
-            //   y = min_coords.y() - 1
-            //}
+            //   if x < min_coords.x() / 2 {
+            //      x = min_coords.x() / 2
+            // }
+
             for cols in rows {
-                if x > max_coords.x() + 1 {
+                if x > max_coords.x() * 2 {
                     break;
                 }
-                // problemi con questi
-                //if x < min_coords.x() - 1 {
-                //   x = min_coords.x() - 1
-                //}
+
                 match cols {
                     Some(t) => {
                         MainState::add_drawable(
