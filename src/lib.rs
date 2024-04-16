@@ -19,15 +19,16 @@ use specs::{Builder, Dispatcher, DispatcherBuilder, World, WorldExt};
 
 use texture_manager::SpriteTable;
 
+use camera::Camera;
+
 use std::path::Path;
 use std::time::Duration;
 
 use crate::markers::Marker;
 use crate::texture_manager::{OverlayType, TextureType};
 
-//use oxagaudiotool::OxAgAudioTool;
-
 mod animation;
+mod camera;
 mod components;
 mod markers;
 mod renderer;
@@ -44,33 +45,23 @@ const ORD_TILES: usize = 0;
 const ORD_CONTENT: usize = 1;
 const ORD_ROBOT: usize = 2;
 const ORD_WEATHER: usize = 3;
-const ORD_TIME: usize = 4;
-const ORD_OVERLAY_HINT: usize = 5;
-const ORD_OVERLAY_HOVER: usize = 6;
+const ORD_OVERLAY_HINT: usize = 4;
+const ORD_OVERLAY_HOVER: usize = 5;
+const ORD_TIME: usize = 6;
+const ORD_TEXT: usize = 7;
 
 pub struct MainState<'window> {
     sdl_context: Sdl,
-    //window: Window,
     canvas: Canvas<Window>,
     texture_creator: TextureCreator<WindowContext>,
     worlds: Vec<World>,
     tiles_world: Vec<Vec<Option<Tile>>>,
     dispatcher: Dispatcher<'window, 'window>,
-    //texture: Texture<'window>,
-    //Provare a creare una structure per salvare le texture con Rc<RefCell>>
     sprite_table: SpriteTable,
     camera: Camera,
     markers: Markers,
     robot_speed: i32,
     framerate: u32,
-}
-
-#[derive(Debug)]
-struct Camera {
-    screen_offset: (i32, i32),
-    chase_robot: bool,
-    zoom_level: i32,
-    robot_position: Point,
 }
 
 impl<'window> MainState<'window> {
@@ -121,9 +112,14 @@ impl<'window> MainState<'window> {
         let mut weather_world = World::new();
         weather_world.register::<Position>();
         weather_world.register::<Sprite>();
+
         let mut time_world = World::new();
         time_world.register::<Position>();
         time_world.register::<Sprite>();
+
+        let mut text_world = World::new();
+        text_world.register::<Position>();
+        text_world.register::<Sprite>();
 
         robot_world.insert(Some(Direction::Right));
 
@@ -138,8 +134,8 @@ impl<'window> MainState<'window> {
         let mut sprite_table = SpriteTable::new();
 
         //tutte le sprite sono definite in questo metodo, implementare metodo per sovrascrivere
-        sprite_table.load_default_prites();
-        //sprite_table.load_sprite( TextureType::Tile(TileType::Grass), Rect::new(12, 43, 60, 34),);
+        sprite_table.load_default_sprites();
+        sprite_table.load_default_font();
 
         let camera = Camera {
             screen_offset: (0, 0),
@@ -153,12 +149,13 @@ impl<'window> MainState<'window> {
         worlds.push(content_world);
         worlds.push(robot_world);
         worlds.push(weather_world);
-        worlds.push(time_world);
         worlds.push(overlay_world_markers);
         worlds.push(overlay_world_hover);
+        worlds.push(time_world);
+        worlds.push(text_world);
 
         if robot_speed > 6 || robot_speed < 1 {
-            return Err("speed has to be <= 6 and >=1".to_string());
+            return Err("speed has to be <= 6 and >= 1".to_string());
         }
 
         Ok(MainState {
@@ -205,6 +202,17 @@ impl<'window> MainState<'window> {
         self.worlds.get_mut(ORD_TILES).unwrap().delete_all();
         self.worlds.get_mut(ORD_CONTENT).unwrap().delete_all();
 
+        //togliere dopo
+        self.worlds.get_mut(ORD_TEXT).unwrap().delete_all();
+
+        MainState::add_drawable(
+            &mut self.worlds,
+            &self.sprite_table,
+            ORD_TEXT,
+            TextureType::FontCharater('A'),
+            0,
+            0,
+        );
         self.tiles_world = world.clone();
 
         let mut y = 0;
@@ -244,6 +252,7 @@ impl<'window> MainState<'window> {
                             x,
                             y,
                         );
+
                         match &t.content {
                             Content::None => {}
                             Content::Rock(_) => {
@@ -500,6 +509,15 @@ impl<'window> MainState<'window> {
                 .join("texture.png"),
         )?;
 
+        for s in &self.sprite_table.0 {
+            match s.0 {
+                TextureType::FontCharater(_) => {
+                    println!("{:?}", s)
+                }
+                _ => {}
+            }
+        }
+
         for _i in 0..(TILE_SIZE / 2_i32.pow(self.robot_speed as u32 - 1)) {
             let mut event_pump = self.sdl_context.event_pump().unwrap();
 
@@ -665,16 +683,16 @@ impl<'window> MainState<'window> {
     pub fn get_markers(&self) -> Vec<((i32, i32), Marker)> {
         self.markers.get_all()
     }
-    //TODO: implement deletion of markers
+    //TODO: implement method to delete markers
 
     pub fn set_framerate(&mut self, framerate: u32) {
         self.framerate = framerate
     }
     pub(crate) fn add_drawable(
         worlds: &mut Vec<World>,
-        sp: &SpriteTable,
+        sprite_table: &SpriteTable,
         ord: usize,
-        tt: TextureType,
+        texture_type: TextureType,
         x: i32,
         y: i32,
     ) {
@@ -684,9 +702,13 @@ impl<'window> MainState<'window> {
             .create_entity()
             .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
             .with(Sprite {
-                region: *sp.0.get(&tt).unwrap(),
-                texture_type: tt,
+                region: *sprite_table.0.get(&texture_type).unwrap(),
+                texture_type,
             })
             .build();
+    }
+
+    pub fn camera(&self) -> &Camera {
+        &self.camera
     }
 }

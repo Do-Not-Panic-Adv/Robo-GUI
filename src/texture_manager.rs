@@ -8,6 +8,9 @@ use sdl2::{rect::Rect, render::Texture};
 
 use crate::TILE_SIZE;
 
+const FONT_STRING: &str =
+    "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{|}~";
+
 pub(crate) struct Textures<'texture>(pub HashMap<TextureType, Vec<&'texture Texture<'texture>>>);
 
 #[derive(Debug)]
@@ -16,7 +19,7 @@ impl SpriteTable {
     pub fn new() -> Self {
         SpriteTable(HashMap::new())
     }
-    pub fn load_default_prites(&mut self) {
+    pub fn load_default_sprites(&mut self) {
         //TODO: add parsing from json???
         self.0.insert(
             TextureType::Robot,
@@ -362,6 +365,22 @@ impl SpriteTable {
             ),
         );
     }
+    pub fn load_default_font(&mut self) {
+        let mut x = 0;
+        let mut y = TILE_SIZE * 11;
+
+        for c in FONT_STRING.chars() {
+            self.0.insert(
+                TextureType::FontCharater(c),
+                Rect::new(x, y, TILE_SIZE as u32, TILE_SIZE as u32),
+            );
+            x += TILE_SIZE;
+            if x >= TILE_SIZE * 16 {
+                x = 0;
+                y += TILE_SIZE;
+            }
+        }
+    }
     //sovrascrive la sprite di un determinato tt
     //TODO: rivedere
     pub fn load_sprite(&mut self, tt: TextureType, rect: Rect) {
@@ -374,7 +393,7 @@ impl<'texture> Textures<'texture> {
         Textures(HashMap::new())
     }
     pub(crate) fn add_texture(&mut self, texture_type: TextureType, texture: &'texture Texture) {
-        self.0.insert(texture_type, vec![texture.clone()]);
+        self.0.insert(texture_type, vec![texture]);
     }
 }
 
@@ -386,6 +405,7 @@ pub enum TextureType {
     Overlay(OverlayType),
     Time(DayTime),
     EnvCondition(WeatherType),
+    FontCharater(char),
 }
 
 #[derive(Debug, PartialEq)]
