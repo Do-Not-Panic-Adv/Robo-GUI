@@ -1,8 +1,10 @@
 use components::drawable_components::{Position, Sprite};
 use components::movement_components::Velocity;
 
+use gui_elements::draw::Drawable;
+use gui_elements::text::{self, Text};
 use markers::Markers;
-use renderer::{calculate_map_coords, render};
+use renderer::{calculate_map_coords, render_sprites};
 use robotics_lib::interface::Direction;
 use robotics_lib::world::environmental_conditions::{DayTime, WeatherType};
 use robotics_lib::world::tile::{Content, Tile};
@@ -30,6 +32,7 @@ use crate::texture_manager::{OverlayType, TextureType};
 mod animation;
 mod camera;
 mod components;
+pub mod gui_elements;
 mod markers;
 mod renderer;
 mod systems;
@@ -202,17 +205,22 @@ impl<'window> MainState<'window> {
         self.worlds.get_mut(ORD_TILES).unwrap().delete_all();
         self.worlds.get_mut(ORD_CONTENT).unwrap().delete_all();
 
+        let mut text_list: Vec<Text> = Vec::new();
+        text_list.push(Text::new("ciao".to_string(), (0, 3 * TILE_SIZE), 0.2, true));
+        text_list.push(Text::new(
+            self.camera().zoom_level.to_string(),
+            (64, 64),
+            0.4,
+            false,
+        ));
+
         //togliere dopo
         self.worlds.get_mut(ORD_TEXT).unwrap().delete_all();
 
-        MainState::add_drawable(
-            &mut self.worlds,
-            &self.sprite_table,
-            ORD_TEXT,
-            TextureType::FontCharater('A'),
-            0,
-            0,
-        );
+        for text in text_list {
+            text.draw(self);
+        }
+
         self.tiles_world = world.clone();
 
         let mut y = 0;
@@ -249,8 +257,8 @@ impl<'window> MainState<'window> {
                             &self.sprite_table,
                             ORD_TILES,
                             TextureType::Tile(t.tile_type),
-                            x,
-                            y,
+                            x * TILE_SIZE,
+                            y * TILE_SIZE,
                         );
 
                         match &t.content {
@@ -261,8 +269,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Rock(0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                             Content::Tree(_) => {
@@ -271,8 +279,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Tree(0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                             Content::Garbage(_) => {
@@ -281,8 +289,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Garbage(0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                             Content::Fire => {
@@ -291,8 +299,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Fire),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                             Content::Coin(_) => {
@@ -301,8 +309,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Coin(0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                             Content::Bin(_) => {
@@ -311,8 +319,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Bin(0..0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                             Content::Crate(_) => {
@@ -321,8 +329,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Crate(0..0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
 
@@ -332,8 +340,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Bank(0..0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
 
@@ -343,8 +351,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Water(0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
 
@@ -354,8 +362,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Market(0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                             Content::Fish(_) => {
@@ -364,8 +372,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Fish(0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                             Content::Building => {
@@ -374,8 +382,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Building),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                             Content::Bush(_) => {
@@ -384,8 +392,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Bush(0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
 
@@ -395,8 +403,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::JollyBlock(0)),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                             Content::Scarecrow => {
@@ -405,8 +413,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_CONTENT,
                                     TextureType::Content(Content::Scarecrow),
-                                    x,
-                                    y,
+                                    x * TILE_SIZE,
+                                    y * TILE_SIZE,
                                 );
                             }
                         }
@@ -511,8 +519,8 @@ impl<'window> MainState<'window> {
 
         for s in &self.sprite_table.0 {
             match s.0 {
-                TextureType::FontCharater(_) => {
-                    println!("{:?}", s)
+                TextureType::FontCharater(_, _, _) => {
+                    //println!("{:?}", s)
                 }
                 _ => {}
             }
@@ -602,8 +610,8 @@ impl<'window> MainState<'window> {
                                     &self.sprite_table,
                                     ORD_OVERLAY_HINT,
                                     TextureType::Overlay(OverlayType::TileMarker),
-                                    marker.0 .1,
-                                    marker.0 .0,
+                                    marker.0 .1 * TILE_SIZE,
+                                    marker.0 .0 * TILE_SIZE,
                                 );
                             }
                         }
@@ -633,8 +641,8 @@ impl<'window> MainState<'window> {
                                 &self.sprite_table,
                                 ORD_OVERLAY_HOVER,
                                 TextureType::Overlay(OverlayType::TileHover),
-                                pos.0,
-                                pos.1,
+                                pos.0 * TILE_SIZE,
+                                pos.1 * TILE_SIZE,
                             );
                             //println!( "Pointing tile {:?}", self.tiles_world[pos.1 as usize][pos.0 as usize])
                         }
@@ -654,7 +662,7 @@ impl<'window> MainState<'window> {
             self.canvas.clear();
 
             for world in self.worlds.iter_mut() {
-                let _ = render(
+                let _ = render_sprites(
                     &mut self.canvas,
                     &mut texture,
                     world.system_data(),
@@ -688,6 +696,7 @@ impl<'window> MainState<'window> {
     pub fn set_framerate(&mut self, framerate: u32) {
         self.framerate = framerate
     }
+
     pub(crate) fn add_drawable(
         worlds: &mut Vec<World>,
         sprite_table: &SpriteTable,
@@ -700,7 +709,7 @@ impl<'window> MainState<'window> {
             .get_mut(ord)
             .unwrap()
             .create_entity()
-            .with(Position(Point::new(x * TILE_SIZE, y * TILE_SIZE)))
+            .with(Position(Point::new(x, y)))
             .with(Sprite {
                 region: *sprite_table.0.get(&texture_type).unwrap(),
                 texture_type,
@@ -708,7 +717,7 @@ impl<'window> MainState<'window> {
             .build();
     }
 
-    pub fn camera(&self) -> &Camera {
+    pub(crate) fn camera(&self) -> &Camera {
         &self.camera
     }
 }

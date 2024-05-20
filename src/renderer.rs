@@ -10,7 +10,7 @@ use specs::ReadStorage;
 //this Extracts data from every entity that has a Position ans Sprite component
 type SystemData<'a> = (ReadStorage<'a, Position>, ReadStorage<'a, Sprite>);
 
-pub(crate) fn render(
+pub(crate) fn render_sprites(
     canvas: &mut WindowCanvas,
     texture: &mut Texture,
     data: SystemData,
@@ -25,21 +25,40 @@ pub(crate) fn render(
             camera.screen_offset = (window_width as i32 / 2, window_height as i32 / 2);
         }
 
-        //this rappresents the point in the canvas where the sprite will be placed
-        let screen_position = calculate_screen_position(pos.0, camera, canvas);
-
-        let scaled_width = sprite.region.width() as i32 + camera.zoom_level;
-        let scaled_height = sprite.region.height() as i32 + camera.zoom_level;
-
-        //this represents the area of the screen on which the sprite region will be placed to.
-        let screen_rect =
-            Rect::from_center(screen_position, scaled_width as u32, scaled_height as u32);
-
         match sprite.texture_type {
             TextureType::Time(_) | TextureType::EnvCondition(_) => {
                 canvas.copy(&texture, sprite.region, None)?
             }
+            TextureType::FontCharater(_, scale, fixed) => {
+                let screen_rect;
+                if fixed {
+                    screen_rect = Rect::from_center(
+                        pos.0,
+                        sprite.region.width() + (TILE_SIZE as f32 * (scale - 1.0)) as u32,
+                        sprite.region.height() + (TILE_SIZE as f32 * (scale - 1.0)) as u32,
+                    );
+                } else {
+                    let screen_position = calculate_screen_position(pos.0, camera, canvas);
+                    screen_rect = Rect::from_center(
+                        screen_position,
+                        sprite.region.width() + (TILE_SIZE as f32 * (scale - 1.0)) as u32,
+                        sprite.region.height() + (TILE_SIZE as f32 * (scale - 1.0)) as u32,
+                    );
+                }
+
+                canvas.copy(&texture, sprite.region, screen_rect)?;
+            }
             _ => {
+                //this rappresents the point in the canvas where the sprite will be placed
+                let screen_position = calculate_screen_position(pos.0, camera, canvas);
+
+                let scaled_width = sprite.region.width() as i32 + camera.zoom_level;
+                let scaled_height = sprite.region.height() as i32 + camera.zoom_level;
+
+                //this represents the area of the screen on which the sprite region will be placed to.
+                let screen_rect =
+                    Rect::from_center(screen_position, scaled_width as u32, scaled_height as u32);
+
                 canvas.copy(&texture, sprite.region, screen_rect)?;
             }
         }

@@ -4,14 +4,12 @@ use robotics_lib::world::{
     environmental_conditions::{DayTime, WeatherType},
     tile::{Content, TileType},
 };
-use sdl2::{rect::Rect, render::Texture};
+use sdl2::rect::Rect;
 
 use crate::TILE_SIZE;
 
 const FONT_STRING: &str =
     "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{|}~";
-
-pub(crate) struct Textures<'texture>(pub HashMap<TextureType, Vec<&'texture Texture<'texture>>>);
 
 #[derive(Debug)]
 pub(crate) struct SpriteTable(pub HashMap<TextureType, Rect>);
@@ -370,15 +368,17 @@ impl SpriteTable {
         let mut y = TILE_SIZE * 11;
 
         for c in FONT_STRING.chars() {
+            println!("{}", c);
             self.0.insert(
-                TextureType::FontCharater(c),
-                Rect::new(x, y, TILE_SIZE as u32, TILE_SIZE as u32),
+                TextureType::FontCharater(c, 1.0, true),
+                Rect::new(x.clone(), y.clone(), TILE_SIZE as u32, TILE_SIZE as u32),
             );
             x += TILE_SIZE;
             if x >= TILE_SIZE * 16 {
                 x = 0;
                 y += TILE_SIZE;
             }
+            // println!("{:?}", self.0);
         }
     }
     //sovrascrive la sprite di un determinato tt
@@ -388,14 +388,14 @@ impl SpriteTable {
     }
 }
 
-impl<'texture> Textures<'texture> {
-    pub fn new() -> Textures<'texture> {
-        Textures(HashMap::new())
-    }
-    pub(crate) fn add_texture(&mut self, texture_type: TextureType, texture: &'texture Texture) {
-        self.0.insert(texture_type, vec![texture]);
-    }
-}
+// impl<'texture> Textures<'texture> {
+//     pub fn new() -> Textures<'texture> {
+//         Textures(HashMap::new())
+//     }
+//     pub(crate) fn add_texture(&mut self, texture_type: TextureType, texture: &'texture Texture) {
+//         self.0.insert(texture_type, vec![texture]);
+//     }
+// }
 
 #[derive(Debug)]
 pub enum TextureType {
@@ -405,7 +405,7 @@ pub enum TextureType {
     Overlay(OverlayType),
     Time(DayTime),
     EnvCondition(WeatherType),
-    FontCharater(char),
+    FontCharater(char, f32, bool),
 }
 
 #[derive(Debug, PartialEq)]
@@ -422,6 +422,7 @@ impl PartialEq for TextureType {
             (Self::Overlay(l0), Self::Overlay(r0)) => l0 == r0,
             (Self::Time(l0), Self::Time(r0)) => l0 == r0,
             (Self::EnvCondition(l0), Self::EnvCondition(r0)) => l0 == r0,
+            (Self::FontCharater(l0, l1, l2), Self::FontCharater(r0, r1, r2)) => l0 == r0,
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
         }
     }
