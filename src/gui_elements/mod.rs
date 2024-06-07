@@ -1,3 +1,4 @@
 pub(crate) mod draw;
+pub(crate) mod item;
 pub(crate) mod scene;
-pub mod text;
+pub(crate) mod text;

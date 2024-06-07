@@ -1,8 +1,10 @@
 use components::drawable_components::{Position, Sprite};
 use components::movement_components::Velocity;
-
 use gui_elements::draw::Drawable;
-use gui_elements::text::{self, Text};
+use gui_elements::item::Item;
+use gui_elements::scene::Scene;
+use gui_elements::text::Text;
+
 use markers::Markers;
 use renderer::{calculate_map_coords, render_sprites};
 use robotics_lib::interface::Direction;
@@ -65,6 +67,7 @@ pub struct MainState<'window> {
     markers: Markers,
     robot_speed: i32,
     framerate: u32,
+    scenes: Vec<Scene>,
 }
 
 impl<'window> MainState<'window> {
@@ -160,6 +163,9 @@ impl<'window> MainState<'window> {
         if robot_speed > 6 || robot_speed < 1 {
             return Err("speed has to be <= 6 and >= 1".to_string());
         }
+        let mut scenes = Vec::new();
+        scenes.push(Scene::new("text".to_string(), 0));
+        //println!("{}", scenes[0].get_id());
 
         Ok(MainState {
             sdl_context,
@@ -173,6 +179,7 @@ impl<'window> MainState<'window> {
             markers: Markers::new(),
             robot_speed,
             framerate: 60,
+            scenes,
         })
     }
     pub fn add_robot(&mut self, pos_x: usize, pos_y: usize) {
@@ -205,22 +212,36 @@ impl<'window> MainState<'window> {
         self.worlds.get_mut(ORD_TILES).unwrap().delete_all();
         self.worlds.get_mut(ORD_CONTENT).unwrap().delete_all();
 
-        let mut text_list: Vec<Text> = Vec::new();
-        text_list.push(Text::new("ciao".to_string(), (0, 3 * TILE_SIZE), 0.2, true));
-        text_list.push(Text::new(
+        let hello_text = Text::new(
+            "text".to_string(),
+            "HelloWorld".to_string(),
+            (0, 1),
+            0.4,
+            true,
+        );
+        let zoom_text = Text::new(
+            "zoom".to_string(),
             self.camera().zoom_level.to_string(),
             (64, 64),
             0.4,
             false,
-        ));
+        );
 
+        let mut scena_testi: Scene = Scene::new("text".to_string(), 0);
         //togliere dopo
         self.worlds.get_mut(ORD_TEXT).unwrap().delete_all();
 
-        for text in text_list {
-            text.draw(self);
-        }
+        scena_testi.add_element(Box::new(zoom_text.clone()));
+        scena_testi.add_element(Box::new(hello_text.clone()));
 
+        scena_testi.add_element(Box::new(Item::new(
+            (10, 10),
+            1.2,
+            true,
+            TextureType::Content(Content::Rock(0)),
+        )));
+
+        scena_testi.draw(self);
         self.tiles_world = world.clone();
 
         let mut y = 0;
@@ -705,19 +726,62 @@ impl<'window> MainState<'window> {
         x: i32,
         y: i32,
     ) {
-        worlds
-            .get_mut(ord)
-            .unwrap()
-            .create_entity()
-            .with(Position(Point::new(x, y)))
-            .with(Sprite {
-                region: *sprite_table.0.get(&texture_type).unwrap(),
-                texture_type,
-            })
-            .build();
+        match &texture_type {
+            TextureType::Item(item, _, _) => {
+                worlds
+                    .get_mut(ord)
+                    .unwrap()
+                    .create_entity()
+                    .with(Position(Point::new(x, y)))
+                    .with(Sprite {
+                        region: *sprite_table.0.get(&*item.clone()).unwrap(),
+                        texture_type,
+                    })
+                    .build();
+            }
+            _ => {
+                worlds
+                    .get_mut(ord)
+                    .unwrap()
+                    .create_entity()
+                    .with(Position(Point::new(x, y)))
+                    .with(Sprite {
+                        region: *sprite_table.0.get(&texture_type).unwrap(),
+                        texture_type,
+                    })
+                    .build();
+            }
+        }
+        // worlds
+        //     .get_mut(ord)
+        //     .unwrap()
+        //     .create_entity()
+        //     .with(Position(Point::new(x, y)))
+        //     .with(Sprite {
+        //         region: *sprite_table.0.get(&texture_type).unwrap(),
+        //         texture_type,
+        //     })
+        //     .build();
     }
 
     pub(crate) fn camera(&self) -> &Camera {
         &self.camera
     }
+    //
+    // pub(crate) fn get_scenes_by_name(&mut self, name: String) -> Option<&Scene> {
+    //     for scene in &self.scenes {
+    //         if scene.get_name() == name {
+    //             return Some(scene);
+    //         }
+    //     }
+    //     None
+    // }
+    // pub(crate) fn get_scenes_by_layer(&mut self, layer: u32) -> Option<&Scene> {
+    //     for scene in &self.scenes {
+    //         if scene.get_layer() == layer {
+    //             return Some(scene);
+    //         }
+    //     }
+    //     None
+    // }
 }

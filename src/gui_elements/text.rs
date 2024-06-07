@@ -2,7 +2,9 @@ use crate::{texture_manager::TextureType, MainState, ORD_TEXT, TILE_SIZE};
 
 use super::draw::Drawable;
 
+#[derive(Clone)]
 pub(crate) struct Text {
+    name: String,
     text: String,
     position: (i32, i32),
     scale: f32,
@@ -10,8 +12,9 @@ pub(crate) struct Text {
 }
 
 impl Text {
-    pub fn new(text: String, position: (i32, i32), scale: f32, global: bool) -> Self {
+    pub fn new(name: String, text: String, position: (i32, i32), scale: f32, global: bool) -> Self {
         Self {
+            name,
             text,
             position,
             scale,

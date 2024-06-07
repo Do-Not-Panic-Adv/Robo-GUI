@@ -368,7 +368,6 @@ impl SpriteTable {
         let mut y = TILE_SIZE * 11;
 
         for c in FONT_STRING.chars() {
-            println!("{}", c);
             self.0.insert(
                 TextureType::FontCharater(c, 1.0, true),
                 Rect::new(x.clone(), y.clone(), TILE_SIZE as u32, TILE_SIZE as u32),
@@ -397,7 +396,7 @@ impl SpriteTable {
 //     }
 // }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TextureType {
     Robot,
     Tile(TileType),
@@ -406,9 +405,10 @@ pub enum TextureType {
     Time(DayTime),
     EnvCondition(WeatherType),
     FontCharater(char, f32, bool),
+    Item(Box<TextureType>, f32, bool), //
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum OverlayType {
     TileHover,
     TileMarker,
@@ -423,6 +423,7 @@ impl PartialEq for TextureType {
             (Self::Time(l0), Self::Time(r0)) => l0 == r0,
             (Self::EnvCondition(l0), Self::EnvCondition(r0)) => l0 == r0,
             (Self::FontCharater(l0, l1, l2), Self::FontCharater(r0, r1, r2)) => l0 == r0,
+            (Self::Item(l0, l1, l2), Self::Item(r0, r1, r2)) => *l0.clone() == *r0.clone(),
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
         }
     }

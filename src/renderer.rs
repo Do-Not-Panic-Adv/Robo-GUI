@@ -29,7 +29,7 @@ pub(crate) fn render_sprites(
             TextureType::Time(_) | TextureType::EnvCondition(_) => {
                 canvas.copy(&texture, sprite.region, None)?
             }
-            TextureType::FontCharater(_, scale, fixed) => {
+            TextureType::FontCharater(_, scale, fixed) | TextureType::Item(_, scale, fixed) => {
                 let screen_rect;
                 if fixed {
                     screen_rect = Rect::from_center(
