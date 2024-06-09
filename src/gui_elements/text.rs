@@ -8,17 +8,26 @@ pub(crate) struct Text {
     text: String,
     position: (i32, i32),
     scale: f32,
-    fixed: bool, // per implementarlo bisogna cambiare la definizione di FontCharacter
+    fixed: bool,
+    layer: u32,
 }
 
 impl Text {
-    pub fn new(name: String, text: String, position: (i32, i32), scale: f32, fixed: bool) -> Self {
+    pub fn new(
+        name: String,
+        text: String,
+        position: (i32, i32),
+        scale: f32,
+        fixed: bool,
+        layer: u32,
+    ) -> Self {
         Self {
             name,
             text,
             position,
             scale,
             fixed,
+            layer,
         }
     }
     pub fn set_text(&mut self, text: String) {
@@ -52,5 +61,8 @@ impl Drawable for Text {
             );
             x += (TILE_SIZE as f32 * 0.5) as i32;
         }
+    }
+    fn get_layer(&self) -> u32 {
+        self.layer
     }
 }

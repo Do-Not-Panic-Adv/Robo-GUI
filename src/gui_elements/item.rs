@@ -7,15 +7,23 @@ pub(crate) struct Item {
     scale: f32,
     fixed: bool,
     class: TextureType,
+    layer: u32,
 }
 
 impl Item {
-    pub fn new(position: (i32, i32), scale: f32, fixed: bool, class: TextureType) -> Self {
+    pub fn new(
+        position: (i32, i32),
+        scale: f32,
+        fixed: bool,
+        class: TextureType,
+        layer: u32,
+    ) -> Self {
         Self {
             position,
             scale,
             fixed,
             class,
+            layer,
         }
     }
     pub fn set_position(&mut self, position: (i32, i32)) {
@@ -52,5 +60,8 @@ impl Drawable for Item {
             self.get_position().0,
             self.get_position().1,
         );
+    }
+    fn get_layer(&self) -> u32 {
+        self.layer
     }
 }

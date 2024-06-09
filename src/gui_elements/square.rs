@@ -10,6 +10,7 @@ pub(crate) struct Square {
     fixed: bool,
     centered: bool,
     color: Color,
+    layer: u32,
 }
 
 impl Square {
@@ -19,6 +20,7 @@ impl Square {
         fixed: bool,
         centered: bool,
         color: Color,
+        layer: u32,
     ) -> Self {
         Self {
             position,
@@ -26,6 +28,7 @@ impl Square {
             fixed,
             centered,
             color,
+            layer,
         }
     }
     pub fn set_position(&mut self, position: (i32, i32)) {
@@ -67,5 +70,9 @@ impl Drawable for Square {
             self.get_position().0,
             self.get_position().1,
         );
+    }
+
+    fn get_layer(&self) -> u32 {
+        self.layer
     }
 }

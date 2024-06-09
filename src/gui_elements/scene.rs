@@ -39,3 +39,8 @@ impl Scene {
         }
     }
 }
+
+pub(crate) enum MainScenes {
+    Inventory,
+    Markers,
+}

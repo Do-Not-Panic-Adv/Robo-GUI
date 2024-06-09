@@ -213,52 +213,22 @@ impl<'window> MainState<'window> {
         self.worlds.get_mut(ORD_TILES).unwrap().delete_all();
         self.worlds.get_mut(ORD_CONTENT).unwrap().delete_all();
 
-        let hello_text = Text::new(
-            "text".to_string(),
-            "HelloWorld".to_string(),
-            (0, 1),
-            0.4,
-            true,
-        );
         let zoom_text = Text::new(
             "zoom".to_string(),
-            self.camera().zoom_level.to_string(),
-            (64, 64),
-            0.4,
-            false,
+            format!("zoom: {}", self.camera().zoom_level.to_string()),
+            (20, 90),
+            0.25,
+            true,
+            0,
         );
 
         let mut scena_testi: Scene = Scene::new("text".to_string(), 0);
         //togliere dopo
-        self.worlds.get_mut(ORD_UI).unwrap().delete_all();
-
-        let pos_text = Text::new(
-            "pos".to_string(),
-            format!("{:?}", (0, 0)),
-            (0, 0),
-            0.4,
-            true,
-        );
+        //self.worlds.get_mut(ORD_UI).unwrap().delete_all();
 
         scena_testi.add_element(Box::new(zoom_text.clone()));
-        scena_testi.add_element(Box::new(hello_text.clone()));
-        scena_testi.add_element(Box::new(pos_text.clone()));
 
-        scena_testi.add_element(Box::new(Item::new(
-            (100, 10),
-            1.2,
-            true,
-            TextureType::Content(Content::Rock(0)),
-        )));
-
-        scena_testi.add_element(Box::new(Square::new(
-            (100, 100),
-            (100, 100),
-            true,
-            true,
-            Color::RGB(255, 255, 100),
-        )));
-        //scena_testi.draw(self);
+        scena_testi.draw(self);
         self.tiles_world = world.clone();
 
         let mut y = 0;
@@ -495,14 +465,17 @@ impl<'window> MainState<'window> {
             }
             None => {}
         };
-        self.worlds.get_mut(ORD_UI).unwrap().delete_all();
+
+        //self.worlds.get_mut(ORD_UI).unwrap().delete_all();
+
         let mut pos_scene = Scene::new("pos".to_string(), 1);
         let pos_text = Text::new(
             "pos".to_string(),
             format!("x: {}, y: {}", coords.unwrap().1, coords.unwrap().0),
             (20, 50),
-            0.3,
+            0.0,
             true,
+            1,
         );
         pos_scene.add_element(Box::new(pos_text));
         pos_scene.draw(self);
@@ -510,8 +483,7 @@ impl<'window> MainState<'window> {
     pub fn update_time_of_day(&mut self, time: DayTime) {
         let limits = self.get_drawable_indexes();
         self.worlds.get_mut(ORD_TIME).unwrap().delete_all();
-        //for x in limits.0.x()..limits.1.x() {
-        //   for y in limits.0.y()..limits.1.y() {
+
         MainState::add_drawable(
             &mut self.worlds,
             &self.sprite_table,
@@ -520,8 +492,17 @@ impl<'window> MainState<'window> {
             0,
             0,
         );
-        // }
-        // }
+        let mut daytime_scene = Scene::new("daytime".to_string(), 1);
+        let time_text = Text::new(
+            "time".to_string(),
+            format!("Time: {:?}", time),
+            (20, 130),
+            0.0,
+            true,
+            1,
+        );
+        daytime_scene.add_element(Box::new(time_text));
+        daytime_scene.draw(self);
     }
     pub fn update_weather(&mut self, w: WeatherType) {
         self.worlds.get_mut(ORD_WEATHER).unwrap().delete_all();
@@ -556,10 +537,6 @@ impl<'window> MainState<'window> {
     // }
 
     pub fn tick(&mut self) -> Result<(), String> {
-        //let mut textures = Textures::new();
-
-        //let grass_texture = self.texture_creator.load_texture( Path::new(env!("CARGO_MANIFEST_DIR")) .join("assets") .join("tiles") .join("grass.png"),)?;
-
         let mut texture = self.texture_creator.load_texture(
             Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("assets")

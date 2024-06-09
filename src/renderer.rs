@@ -65,6 +65,7 @@ pub(crate) fn render_sprites(
                     screen_rect = Rect::from_center(screen_position, size.0, size.1);
                 }
                 canvas.set_draw_color(color);
+                canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
                 canvas.fill_rect(screen_rect)?;
                 canvas.set_draw_color(sdl2::pixels::Color::RGB(0, 0, 0));
             }
