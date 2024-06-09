@@ -4,12 +4,12 @@ use robotics_lib::world::{
     environmental_conditions::{DayTime, WeatherType},
     tile::{Content, TileType},
 };
-use sdl2::rect::Rect;
+use sdl2::{pixels::Color, rect::Rect};
 
 use crate::TILE_SIZE;
 
 const FONT_STRING: &str =
-    "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{|}~";
+    "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{|}~ ";
 
 #[derive(Debug)]
 pub(crate) struct SpriteTable(pub HashMap<TextureType, Rect>);
@@ -405,7 +405,8 @@ pub enum TextureType {
     Time(DayTime),
     EnvCondition(WeatherType),
     FontCharater(char, f32, bool),
-    Item(Box<TextureType>, f32, bool), //
+    Item(Box<TextureType>, f32, bool),
+    Square((u32, u32), Color, bool, bool), // centered, fixed
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -422,8 +423,8 @@ impl PartialEq for TextureType {
             (Self::Overlay(l0), Self::Overlay(r0)) => l0 == r0,
             (Self::Time(l0), Self::Time(r0)) => l0 == r0,
             (Self::EnvCondition(l0), Self::EnvCondition(r0)) => l0 == r0,
-            (Self::FontCharater(l0, l1, l2), Self::FontCharater(r0, r1, r2)) => l0 == r0,
-            (Self::Item(l0, l1, l2), Self::Item(r0, r1, r2)) => *l0.clone() == *r0.clone(),
+            (Self::FontCharater(l0, _, _), Self::FontCharater(r0, _, _)) => l0 == r0,
+            (Self::Item(l0, _, _), Self::Item(r0, _, _)) => *l0.clone() == *r0.clone(),
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
         }
     }

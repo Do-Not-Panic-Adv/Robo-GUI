@@ -1,25 +1,20 @@
-use crate::{texture_manager::TextureType, MainState, ORD_TEXT};
+use crate::{texture_manager::TextureType, MainState, ORD_UI};
 
 use super::draw::Drawable;
 
 pub(crate) struct Item {
     position: (i32, i32),
     scale: f32,
-    use_global_position: bool,
+    fixed: bool,
     class: TextureType,
 }
 
 impl Item {
-    pub fn new(
-        position: (i32, i32),
-        scale: f32,
-        use_global_position: bool,
-        class: TextureType,
-    ) -> Self {
+    pub fn new(position: (i32, i32), scale: f32, fixed: bool, class: TextureType) -> Self {
         Self {
             position,
             scale,
-            use_global_position,
+            fixed,
             class,
         }
     }
@@ -39,17 +34,16 @@ impl Item {
         self.class.clone()
     }
     pub fn get_fixed(&self) -> bool {
-        self.use_global_position
+        self.fixed
     }
 }
 
 impl Drawable for Item {
     fn draw(&self, state: &mut MainState) {
-        println!("added item to drawables");
         MainState::add_drawable(
             &mut state.worlds,
             &state.sprite_table,
-            ORD_TEXT,
+            ORD_UI,
             TextureType::Item(
                 Box::new(self.get_class().clone()),
                 self.get_scale(),

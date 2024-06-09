@@ -1,4 +1,4 @@
-use crate::{texture_manager::TextureType, MainState, ORD_TEXT, TILE_SIZE};
+use crate::{texture_manager::TextureType, MainState, ORD_UI, TILE_SIZE};
 
 use super::draw::Drawable;
 
@@ -8,17 +8,17 @@ pub(crate) struct Text {
     text: String,
     position: (i32, i32),
     scale: f32,
-    use_global_position: bool, // per implementarlo bisogna cambiare la definizione di FontCharacter
+    fixed: bool, // per implementarlo bisogna cambiare la definizione di FontCharacter
 }
 
 impl Text {
-    pub fn new(name: String, text: String, position: (i32, i32), scale: f32, global: bool) -> Self {
+    pub fn new(name: String, text: String, position: (i32, i32), scale: f32, fixed: bool) -> Self {
         Self {
             name,
             text,
             position,
             scale,
-            use_global_position: global,
+            fixed,
         }
     }
     pub fn set_text(&mut self, text: String) {
@@ -45,8 +45,8 @@ impl Drawable for Text {
             MainState::add_drawable(
                 &mut state.worlds,
                 &state.sprite_table,
-                ORD_TEXT,
-                TextureType::FontCharater(c, self.scale, self.use_global_position),
+                ORD_UI,
+                TextureType::FontCharater(c, self.scale, self.fixed),
                 x,
                 self.get_position().1,
             );

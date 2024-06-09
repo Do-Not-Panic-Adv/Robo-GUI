@@ -1,8 +1,8 @@
 use components::drawable_components::{Position, Sprite};
 use components::movement_components::Velocity;
-use gui_elements::draw::Drawable;
 use gui_elements::item::Item;
 use gui_elements::scene::Scene;
+use gui_elements::square::Square;
 use gui_elements::text::Text;
 
 use markers::Markers;
@@ -10,6 +10,7 @@ use renderer::{calculate_map_coords, render_sprites};
 use robotics_lib::interface::Direction;
 use robotics_lib::world::environmental_conditions::{DayTime, WeatherType};
 use robotics_lib::world::tile::{Content, Tile};
+use sdl2::pixels::Color;
 use sdl2::render::{Canvas, TextureCreator};
 use sdl2::video::{Window, WindowContext};
 use sdl2::Sdl;
@@ -40,8 +41,8 @@ mod renderer;
 mod systems;
 pub mod texture_manager;
 
-const WIDTH: u32 = 800;
-const HEIGHT: u32 = 480;
+const WIDTH: u32 = 1280;
+const HEIGHT: u32 = 720;
 
 pub const TILE_SIZE: i32 = 32;
 //const ROBOT_SPEED: i32 = 6;
@@ -53,7 +54,7 @@ const ORD_WEATHER: usize = 3;
 const ORD_OVERLAY_HINT: usize = 4;
 const ORD_OVERLAY_HOVER: usize = 5;
 const ORD_TIME: usize = 6;
-const ORD_TEXT: usize = 7;
+const ORD_UI: usize = 7;
 
 pub struct MainState<'window> {
     sdl_context: Sdl,
@@ -229,19 +230,35 @@ impl<'window> MainState<'window> {
 
         let mut scena_testi: Scene = Scene::new("text".to_string(), 0);
         //togliere dopo
-        self.worlds.get_mut(ORD_TEXT).unwrap().delete_all();
+        self.worlds.get_mut(ORD_UI).unwrap().delete_all();
+
+        let pos_text = Text::new(
+            "pos".to_string(),
+            format!("{:?}", (0, 0)),
+            (0, 0),
+            0.4,
+            true,
+        );
 
         scena_testi.add_element(Box::new(zoom_text.clone()));
         scena_testi.add_element(Box::new(hello_text.clone()));
+        scena_testi.add_element(Box::new(pos_text.clone()));
 
         scena_testi.add_element(Box::new(Item::new(
-            (10, 10),
+            (100, 10),
             1.2,
             true,
             TextureType::Content(Content::Rock(0)),
         )));
 
-        scena_testi.draw(self);
+        scena_testi.add_element(Box::new(Square::new(
+            (100, 100),
+            (100, 100),
+            true,
+            true,
+            Color::RGB(255, 255, 100),
+        )));
+        //scena_testi.draw(self);
         self.tiles_world = world.clone();
 
         let mut y = 0;
@@ -478,6 +495,17 @@ impl<'window> MainState<'window> {
             }
             None => {}
         };
+        self.worlds.get_mut(ORD_UI).unwrap().delete_all();
+        let mut pos_scene = Scene::new("pos".to_string(), 1);
+        let pos_text = Text::new(
+            "pos".to_string(),
+            format!("x: {}, y: {}", coords.unwrap().1, coords.unwrap().0),
+            (20, 50),
+            0.3,
+            true,
+        );
+        pos_scene.add_element(Box::new(pos_text));
+        pos_scene.draw(self);
     }
     pub fn update_time_of_day(&mut self, time: DayTime) {
         let limits = self.get_drawable_indexes();
@@ -520,12 +548,12 @@ impl<'window> MainState<'window> {
         (min_coords, max_coords)
     }
 
-    fn robot_stop(&mut self) {
-        self.worlds
-            .get_mut(ORD_ROBOT)
-            .unwrap()
-            .insert(Some(None::<Direction>));
-    }
+    // fn robot_stop(&mut self) {
+    //     self.worlds
+    //         .get_mut(ORD_ROBOT)
+    //         .unwrap()
+    //         .insert(Some(None::<Direction>));
+    // }
 
     pub fn tick(&mut self) -> Result<(), String> {
         //let mut textures = Textures::new();
@@ -537,15 +565,6 @@ impl<'window> MainState<'window> {
                 .join("assets")
                 .join("texture.png"),
         )?;
-
-        for s in &self.sprite_table.0 {
-            match s.0 {
-                TextureType::FontCharater(_, _, _) => {
-                    //println!("{:?}", s)
-                }
-                _ => {}
-            }
-        }
 
         for _i in 0..(TILE_SIZE / 2_i32.pow(self.robot_speed as u32 - 1)) {
             let mut event_pump = self.sdl_context.event_pump().unwrap();
@@ -676,9 +695,9 @@ impl<'window> MainState<'window> {
             self.dispatcher
                 .dispatch(&self.worlds.get_mut(ORD_ROBOT).unwrap());
 
-            self.worlds.get_mut(ORD_TILES).unwrap().maintain();
-            self.worlds.get_mut(ORD_CONTENT).unwrap().maintain();
-            self.worlds.get_mut(ORD_ROBOT).unwrap().maintain();
+            for world in self.worlds.iter_mut() {
+                world.maintain();
+            }
 
             self.canvas.clear();
 
@@ -690,8 +709,6 @@ impl<'window> MainState<'window> {
                     &mut self.camera,
                 );
             }
-
-            //aggiungere chiamate renderer per env_conditions
 
             self.canvas.present();
 
@@ -736,6 +753,18 @@ impl<'window> MainState<'window> {
                     .with(Sprite {
                         region: *sprite_table.0.get(&*item.clone()).unwrap(),
                         texture_type,
+                    })
+                    .build();
+            }
+            TextureType::Square(size, color, centered, fixed) => {
+                worlds
+                    .get_mut(ord)
+                    .unwrap()
+                    .create_entity()
+                    .with(Position(Point::new(x, y)))
+                    .with(Sprite {
+                        region: Rect::new(0, 0, 0, 0),
+                        texture_type: TextureType::Square(*size, *color, *centered, *fixed),
                     })
                     .build();
             }

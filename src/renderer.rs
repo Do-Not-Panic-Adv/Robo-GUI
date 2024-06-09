@@ -1,6 +1,6 @@
 use crate::components::drawable_components::{Position, Sprite};
 use crate::texture_manager::TextureType;
-use crate::{Camera, TILE_SIZE};
+use crate::{Camera, HEIGHT, TILE_SIZE, WIDTH};
 
 use sdl2::rect::{Point, Rect};
 use sdl2::render::{Texture, WindowCanvas};
@@ -47,6 +47,26 @@ pub(crate) fn render_sprites(
                 }
 
                 canvas.copy(&texture, sprite.region, screen_rect)?;
+            }
+            TextureType::Square(size, color, centered, fixed) => {
+                let screen_rect;
+                if fixed {
+                    if centered {
+                        screen_rect = Rect::from_center(
+                            Point::new(WIDTH as i32 / 2, HEIGHT as i32 / 2),
+                            size.0,
+                            size.1,
+                        );
+                    } else {
+                        screen_rect = Rect::from_center(pos.0, size.0, size.1);
+                    }
+                } else {
+                    let screen_position = calculate_screen_position(pos.0, camera, canvas);
+                    screen_rect = Rect::from_center(screen_position, size.0, size.1);
+                }
+                canvas.set_draw_color(color);
+                canvas.fill_rect(screen_rect)?;
+                canvas.set_draw_color(sdl2::pixels::Color::RGB(0, 0, 0));
             }
             _ => {
                 //this rappresents the point in the canvas where the sprite will be placed
