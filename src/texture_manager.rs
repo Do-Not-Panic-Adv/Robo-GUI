@@ -377,24 +377,14 @@ impl SpriteTable {
                 x = 0;
                 y += TILE_SIZE;
             }
-            // println!("{:?}", self.0);
         }
     }
+
     //sovrascrive la sprite di un determinato tt
-    //TODO: rivedere
     pub fn load_sprite(&mut self, tt: TextureType, rect: Rect) {
         let _ = self.0.insert(tt, rect);
     }
 }
-
-// impl<'texture> Textures<'texture> {
-//     pub fn new() -> Textures<'texture> {
-//         Textures(HashMap::new())
-//     }
-//     pub(crate) fn add_texture(&mut self, texture_type: TextureType, texture: &'texture Texture) {
-//         self.0.insert(texture_type, vec![texture]);
-//     }
-// }
 
 #[derive(Debug, Clone)]
 pub enum TextureType {

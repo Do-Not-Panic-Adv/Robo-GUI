@@ -5,7 +5,6 @@ use uuid::Uuid;
 
 pub(crate) struct Scene {
     name: String,
-    id: Uuid,
     layer: u32,
     elements: Vec<Box<dyn Drawable>>,
 }
@@ -16,17 +15,14 @@ impl Scene {
             layer,
             elements: Vec::new(),
             name,
-            id: Uuid::new_v4(),
         }
     }
-    pub(crate) fn add_element(&mut self, element: Box<dyn Drawable>) {
+    pub(crate) fn add_element(&mut self, mut element: Box<dyn Drawable>) {
+        element.set_parent((self.name.clone(), self.layer));
         self.elements.push(element);
     }
     pub(crate) fn get_name(&self) -> String {
         self.name.clone()
-    }
-    pub(crate) fn get_id(&self) -> Uuid {
-        self.id
     }
     pub(crate) fn get_layer(&self) -> u32 {
         self.layer

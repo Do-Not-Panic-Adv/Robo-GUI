@@ -1,12 +1,11 @@
 use components::drawable_components::{Position, Sprite};
 use components::movement_components::Velocity;
-use gui_elements::item::Item;
 use gui_elements::scene::Scene;
 use gui_elements::square::Square;
 use gui_elements::text::Text;
 
 use markers::Markers;
-use renderer::{calculate_map_coords, render_sprites};
+use renderer::{calculate_map_coords, render_sprites, Layer, RENDER_ORDER};
 use robotics_lib::interface::Direction;
 use robotics_lib::world::environmental_conditions::{DayTime, WeatherType};
 use robotics_lib::world::tile::{Content, Tile};
@@ -26,6 +25,7 @@ use texture_manager::SpriteTable;
 
 use camera::Camera;
 
+use std::collections::HashMap;
 use std::path::Path;
 use std::time::Duration;
 
@@ -47,20 +47,12 @@ const HEIGHT: u32 = 720;
 pub const TILE_SIZE: i32 = 32;
 //const ROBOT_SPEED: i32 = 6;
 
-const ORD_TILES: usize = 0;
-const ORD_CONTENT: usize = 1;
-const ORD_ROBOT: usize = 2;
-const ORD_WEATHER: usize = 3;
-const ORD_OVERLAY_HINT: usize = 4;
-const ORD_OVERLAY_HOVER: usize = 5;
-const ORD_TIME: usize = 6;
-const ORD_UI: usize = 7;
-
 pub struct MainState<'window> {
     sdl_context: Sdl,
     canvas: Canvas<Window>,
     texture_creator: TextureCreator<WindowContext>,
-    worlds: Vec<World>,
+    worlds: HashMap<Layer, World>,
+    ui_elements: HashMap<(String, u32, u32), World>,
     tiles_world: Vec<Vec<Option<Tile>>>,
     dispatcher: Dispatcher<'window, 'window>,
     sprite_table: SpriteTable,
@@ -68,7 +60,7 @@ pub struct MainState<'window> {
     markers: Markers,
     robot_speed: i32,
     framerate: u32,
-    scenes: Vec<Scene>,
+    scenes: Vec<(String, u32, u32)>,
 }
 
 impl<'window> MainState<'window> {
@@ -124,10 +116,6 @@ impl<'window> MainState<'window> {
         time_world.register::<Position>();
         time_world.register::<Sprite>();
 
-        let mut text_world = World::new();
-        text_world.register::<Position>();
-        text_world.register::<Sprite>();
-
         robot_world.insert(Some(Direction::Right));
 
         //chiama i system relativi al robot
@@ -151,27 +139,27 @@ impl<'window> MainState<'window> {
             robot_position: Point::new(0, 0),
         };
 
-        let mut worlds: Vec<World> = Vec::new();
-        worlds.push(game_world);
-        worlds.push(content_world);
-        worlds.push(robot_world);
-        worlds.push(weather_world);
-        worlds.push(overlay_world_markers);
-        worlds.push(overlay_world_hover);
-        worlds.push(time_world);
-        worlds.push(text_world);
+        let mut worlds = HashMap::new();
+
+        worlds.insert(Layer::Tiles, game_world);
+        worlds.insert(Layer::Content, content_world);
+        worlds.insert(Layer::Robot, robot_world);
+        worlds.insert(Layer::Weather, weather_world);
+        worlds.insert(Layer::OverlayHint, overlay_world_markers);
+        worlds.insert(Layer::OverlayHover, overlay_world_hover);
+        worlds.insert(Layer::Time, time_world);
+
+        let ui_elements = HashMap::new();
 
         if robot_speed > 6 || robot_speed < 1 {
             return Err("speed has to be <= 6 and >= 1".to_string());
         }
-        let mut scenes = Vec::new();
-        scenes.push(Scene::new("text".to_string(), 0));
-        //println!("{}", scenes[0].get_id());
 
         Ok(MainState {
             sdl_context,
             canvas,
             worlds,
+            ui_elements,
             dispatcher,
             texture_creator,
             sprite_table,
@@ -180,12 +168,12 @@ impl<'window> MainState<'window> {
             markers: Markers::new(),
             robot_speed,
             framerate: 60,
-            scenes,
+            scenes: Vec::new(),
         })
     }
     pub fn add_robot(&mut self, pos_x: usize, pos_y: usize) {
         self.worlds
-            .get_mut(ORD_ROBOT)
+            .get_mut(&Layer::Robot)
             .unwrap()
             .create_entity()
             .with(Position(Point::new(
@@ -210,25 +198,53 @@ impl<'window> MainState<'window> {
     }
 
     pub fn update_world(&mut self, world: Vec<Vec<Option<Tile>>>) {
-        self.worlds.get_mut(ORD_TILES).unwrap().delete_all();
-        self.worlds.get_mut(ORD_CONTENT).unwrap().delete_all();
+        self.worlds.get_mut(&Layer::Tiles).unwrap().delete_all();
+        self.worlds.get_mut(&Layer::Content).unwrap().delete_all();
 
         let zoom_text = Text::new(
-            "zoom".to_string(),
             format!("zoom: {}", self.camera().zoom_level.to_string()),
             (20, 90),
-            0.25,
+            0.5,
             true,
-            0,
+            6,
         );
 
-        let mut scena_testi: Scene = Scene::new("text".to_string(), 0);
-        //togliere dopo
-        //self.worlds.get_mut(ORD_UI).unwrap().delete_all();
+        MainState::clear_scene_by_name(self, "zoom".to_string());
+        let mut scena_zoom: Scene = Scene::new("zoom".to_string(), 1);
+        scena_zoom.add_element(Box::new(zoom_text.clone()));
+        scena_zoom.draw(self);
 
-        scena_testi.add_element(Box::new(zoom_text.clone()));
+        // a scene with 3 random squares
 
-        scena_testi.draw(self);
+        MainState::clear_scene_by_name(self, "square".to_string());
+        let mut scene = Scene::new("square".to_string(), 2);
+
+        scene.add_element(Box::new(Square::new(
+            (200, 200),
+            (50, 50),
+            true,
+            false,
+            Color::RGBA(255, 0, 0, 50),
+            5,
+        )));
+        scene.add_element(Box::new(Square::new(
+            (300, 300),
+            (50, 50),
+            true,
+            false,
+            Color::RGB(0, 255, 0),
+            3,
+        )));
+        scene.add_element(Box::new(Square::new(
+            (400, 400),
+            (50, 50),
+            true,
+            false,
+            Color::RGB(0, 0, 255),
+            1,
+        )));
+        scene.draw(self);
+
         self.tiles_world = world.clone();
 
         let mut y = 0;
@@ -263,7 +279,7 @@ impl<'window> MainState<'window> {
                         MainState::add_drawable(
                             &mut self.worlds,
                             &self.sprite_table,
-                            ORD_TILES,
+                            Layer::Tiles,
                             TextureType::Tile(t.tile_type),
                             x * TILE_SIZE,
                             y * TILE_SIZE,
@@ -275,7 +291,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Rock(0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -285,7 +301,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Tree(0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -295,7 +311,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Garbage(0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -305,7 +321,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Fire),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -315,7 +331,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Coin(0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -325,7 +341,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Bin(0..0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -335,7 +351,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Crate(0..0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -346,7 +362,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Bank(0..0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -357,7 +373,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Water(0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -368,7 +384,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Market(0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -378,7 +394,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Fish(0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -388,7 +404,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Building),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -398,7 +414,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Bush(0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -409,7 +425,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::JollyBlock(0)),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -419,7 +435,7 @@ impl<'window> MainState<'window> {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_CONTENT,
+                                    Layer::Content,
                                     TextureType::Content(Content::Scarecrow),
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
@@ -459,7 +475,7 @@ impl<'window> MainState<'window> {
                 }
 
                 self.worlds
-                    .get_mut(ORD_ROBOT)
+                    .get_mut(&Layer::Robot)
                     .unwrap()
                     .insert(Some(dir.clone()));
             }
@@ -468,12 +484,13 @@ impl<'window> MainState<'window> {
 
         //self.worlds.get_mut(ORD_UI).unwrap().delete_all();
 
+        MainState::clear_scene_by_name(self, "pos".to_string());
+
         let mut pos_scene = Scene::new("pos".to_string(), 1);
         let pos_text = Text::new(
-            "pos".to_string(),
             format!("x: {}, y: {}", coords.unwrap().1, coords.unwrap().0),
             (20, 50),
-            0.0,
+            1.0,
             true,
             1,
         );
@@ -482,38 +499,39 @@ impl<'window> MainState<'window> {
     }
     pub fn update_time_of_day(&mut self, time: DayTime) {
         let limits = self.get_drawable_indexes();
-        self.worlds.get_mut(ORD_TIME).unwrap().delete_all();
+
+        self.worlds.get_mut(&Layer::Time).unwrap().delete_all();
 
         MainState::add_drawable(
             &mut self.worlds,
             &self.sprite_table,
-            ORD_TIME,
+            Layer::Time,
             TextureType::Time(time),
             0,
             0,
         );
+        MainState::clear_scene_by_name(self, "daytime".to_string());
         let mut daytime_scene = Scene::new("daytime".to_string(), 1);
-        let time_text = Text::new(
-            "time".to_string(),
-            format!("Time: {:?}", time),
-            (20, 130),
-            0.0,
-            true,
-            1,
-        );
+        let time_text = Text::new(format!("Time: {:?}", time), (20, 130), 0.5, true, 1);
         daytime_scene.add_element(Box::new(time_text));
         daytime_scene.draw(self);
     }
     pub fn update_weather(&mut self, w: WeatherType) {
-        self.worlds.get_mut(ORD_WEATHER).unwrap().delete_all();
+        self.worlds.get_mut(&Layer::Weather).unwrap().delete_all();
         MainState::add_drawable(
             &mut self.worlds,
             &self.sprite_table,
-            ORD_WEATHER,
+            Layer::Weather,
             TextureType::EnvCondition(w),
             0,
             0,
         );
+
+        MainState::clear_scene_by_name(self, "weather".to_string());
+        let mut weather_scene = Scene::new("weather".to_string(), 1);
+        let weather_text = Text::new(format!("Weather: {:?}", w), (20, 180), 0.5, true, 1);
+        weather_scene.add_element(Box::new(weather_text));
+        weather_scene.draw(self);
     }
 
     /// Returns the get drawable indexes of this [`MainState`].
@@ -528,13 +546,6 @@ impl<'window> MainState<'window> {
         );
         (min_coords, max_coords)
     }
-
-    // fn robot_stop(&mut self) {
-    //     self.worlds
-    //         .get_mut(ORD_ROBOT)
-    //         .unwrap()
-    //         .insert(Some(None::<Direction>));
-    // }
 
     pub fn tick(&mut self) -> Result<(), String> {
         let mut texture = self.texture_creator.load_texture(
@@ -619,13 +630,16 @@ impl<'window> MainState<'window> {
                             let pos = self.get_coords_from_pos(Point::new(x, y));
                             self.markers.toggle(pos);
 
-                            self.worlds.get_mut(ORD_OVERLAY_HINT).unwrap().delete_all();
+                            self.worlds
+                                .get_mut(&Layer::OverlayHint)
+                                .unwrap()
+                                .delete_all();
 
                             for marker in &self.markers.get_all() {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
-                                    ORD_OVERLAY_HINT,
+                                    Layer::OverlayHint,
                                     TextureType::Overlay(OverlayType::TileMarker),
                                     marker.0 .1 * TILE_SIZE,
                                     marker.0 .0 * TILE_SIZE,
@@ -651,12 +665,15 @@ impl<'window> MainState<'window> {
                         if self.tiles_world.len() > pos.1 as usize
                             && self.tiles_world[0].len() > pos.0 as usize
                         {
-                            self.worlds.get_mut(ORD_OVERLAY_HOVER).unwrap().delete_all();
+                            self.worlds
+                                .get_mut(&Layer::OverlayHover)
+                                .unwrap()
+                                .delete_all();
 
                             MainState::add_drawable(
                                 &mut self.worlds,
                                 &self.sprite_table,
-                                ORD_OVERLAY_HOVER,
+                                Layer::OverlayHover,
                                 TextureType::Overlay(OverlayType::TileHover),
                                 pos.0 * TILE_SIZE,
                                 pos.1 * TILE_SIZE,
@@ -670,25 +687,38 @@ impl<'window> MainState<'window> {
 
             //UPDATE
             self.dispatcher
-                .dispatch(&self.worlds.get_mut(ORD_ROBOT).unwrap());
+                .dispatch(&self.worlds.get_mut(&Layer::Robot).unwrap());
 
-            for world in self.worlds.iter_mut() {
+            for world in self.worlds.values_mut() {
                 world.maintain();
             }
 
             self.canvas.clear();
-
-            for world in self.worlds.iter_mut() {
+            for layer in RENDER_ORDER {
                 let _ = render_sprites(
                     &mut self.canvas,
                     &mut texture,
-                    world.system_data(),
+                    self.worlds.get(&layer).unwrap().system_data(),
+                    &mut self.camera,
+                );
+            }
+
+            // render the ui elements sorted by layer
+            let mut tmp = self.ui_elements.iter().collect::<Vec<_>>();
+            tmp.sort_by(|a, b| a.0.cmp(&b.0));
+            //println!("{:?}", tmp.iter().map(|x| x.0).collect::<Vec<_>>());
+
+            let elements = tmp.iter().map(|x| x.1).collect::<Vec<_>>();
+            for element in elements {
+                let _ = render_sprites(
+                    &mut self.canvas,
+                    &mut texture,
+                    element.system_data(),
                     &mut self.camera,
                 );
             }
 
             self.canvas.present();
-
             std::thread::sleep(Duration::new(0, 1_000_000_000u32 / self.framerate));
         }
 
@@ -712,82 +742,95 @@ impl<'window> MainState<'window> {
         self.framerate = framerate
     }
 
-    pub(crate) fn add_drawable(
-        worlds: &mut Vec<World>,
+    pub(crate) fn add_ui_element(
+        ui_elements: &mut HashMap<(String, u32, u32), World>,
         sprite_table: &SpriteTable,
-        ord: usize,
+        layer: Layer,
         texture_type: TextureType,
         x: i32,
         y: i32,
     ) {
-        match &texture_type {
-            TextureType::Item(item, _, _) => {
-                worlds
-                    .get_mut(ord)
-                    .unwrap()
-                    .create_entity()
-                    .with(Position(Point::new(x, y)))
-                    .with(Sprite {
-                        region: *sprite_table.0.get(&*item.clone()).unwrap(),
-                        texture_type,
-                    })
-                    .build();
+        match layer {
+            Layer::Ui(name, parent, sub) => {
+                let world = ui_elements
+                    .entry((name.clone(), parent, sub))
+                    .or_insert(World::new());
+                world.register::<Position>();
+                world.register::<Sprite>();
+
+                match &texture_type {
+                    TextureType::Item(item, _, _) => {
+                        world
+                            .create_entity()
+                            .with(Position(Point::new(x, y)))
+                            .with(Sprite {
+                                region: *sprite_table.0.get(&*item.clone()).unwrap(),
+                                texture_type,
+                            })
+                            .build();
+                    }
+                    TextureType::Square(size, color, centered, fixed) => {
+                        world
+                            .create_entity()
+                            .with(Position(Point::new(x, y)))
+                            .with(Sprite {
+                                region: Rect::new(0, 0, 0, 0),
+                                texture_type: TextureType::Square(*size, *color, *centered, *fixed),
+                            })
+                            .build();
+                    }
+                    _ => {
+                        world
+                            .create_entity()
+                            .with(Position(Point::new(x, y)))
+                            .with(Sprite {
+                                region: *sprite_table.0.get(&texture_type).unwrap(),
+                                texture_type,
+                            })
+                            .build();
+                    }
+                }
             }
-            TextureType::Square(size, color, centered, fixed) => {
-                worlds
-                    .get_mut(ord)
-                    .unwrap()
-                    .create_entity()
-                    .with(Position(Point::new(x, y)))
-                    .with(Sprite {
-                        region: Rect::new(0, 0, 0, 0),
-                        texture_type: TextureType::Square(*size, *color, *centered, *fixed),
-                    })
-                    .build();
-            }
-            _ => {
-                worlds
-                    .get_mut(ord)
-                    .unwrap()
-                    .create_entity()
-                    .with(Position(Point::new(x, y)))
-                    .with(Sprite {
-                        region: *sprite_table.0.get(&texture_type).unwrap(),
-                        texture_type,
-                    })
-                    .build();
-            }
+            _ => {}
         }
-        // worlds
-        //     .get_mut(ord)
-        //     .unwrap()
-        //     .create_entity()
-        //     .with(Position(Point::new(x, y)))
-        //     .with(Sprite {
-        //         region: *sprite_table.0.get(&texture_type).unwrap(),
-        //         texture_type,
-        //     })
-        //     .build();
+    }
+    pub(crate) fn clear_scene_by_name(state: &mut MainState, name: String) {
+        let keys = state
+            .scenes
+            .iter()
+            .filter(|x| x.0 == name)
+            .map(|x| x.clone())
+            .collect::<Vec<_>>();
+
+        for key in keys {
+            state.ui_elements.remove(&key);
+        }
+        //delete all the ui elements with the same name
+        state.scenes.retain(|x| x.0 != name);
+
+        //ui_elements.remove(*name);
+    }
+    pub(crate) fn add_drawable(
+        worlds: &mut HashMap<Layer, World>,
+        sprite_table: &SpriteTable,
+        layer: Layer,
+        texture_type: TextureType,
+        x: i32,
+        y: i32,
+    ) {
+        worlds
+            .get_mut(&layer)
+            .unwrap()
+            .create_entity()
+            .with(Position(Point::new(x, y)))
+            .with(Sprite {
+                region: *sprite_table.0.get(&texture_type).unwrap(),
+                texture_type,
+            })
+            .build();
     }
 
     pub(crate) fn camera(&self) -> &Camera {
         &self.camera
     }
-    //
-    // pub(crate) fn get_scenes_by_name(&mut self, name: String) -> Option<&Scene> {
-    //     for scene in &self.scenes {
-    //         if scene.get_name() == name {
-    //             return Some(scene);
-    //         }
-    //     }
-    //     None
-    // }
-    // pub(crate) fn get_scenes_by_layer(&mut self, layer: u32) -> Option<&Scene> {
-    //     for scene in &self.scenes {
-    //         if scene.get_layer() == layer {
-    //             return Some(scene);
-    //         }
-    //     }
-    //     None
-    // }
 }

@@ -1,6 +1,6 @@
-use crate::{texture_manager::TextureType, MainState, ORD_UI};
+use crate::{renderer::Layer, texture_manager::TextureType, MainState};
 
-use super::draw::Drawable;
+use super::{draw::Drawable, scene::Scene};
 
 pub(crate) struct Item {
     position: (i32, i32),
@@ -8,6 +8,7 @@ pub(crate) struct Item {
     fixed: bool,
     class: TextureType,
     layer: u32,
+    parent: Option<(String, u32)>,
 }
 
 impl Item {
@@ -24,6 +25,7 @@ impl Item {
             fixed,
             class,
             layer,
+            parent: None,
         }
     }
     pub fn set_position(&mut self, position: (i32, i32)) {
@@ -44,14 +46,27 @@ impl Item {
     pub fn get_fixed(&self) -> bool {
         self.fixed
     }
+    pub fn get_parent(&self) -> Option<(String, u32)> {
+        self.parent.clone()
+    }
 }
 
 impl Drawable for Item {
     fn draw(&self, state: &mut MainState) {
+        state.scenes.push((
+            self.get_parent().unwrap().0.clone(),
+            self.get_parent().unwrap().1,
+            self.get_layer(),
+        ));
+
         MainState::add_drawable(
             &mut state.worlds,
             &state.sprite_table,
-            ORD_UI,
+            Layer::Ui(
+                self.get_parent().unwrap().0,
+                self.get_parent().unwrap().1,
+                self.get_layer(),
+            ),
             TextureType::Item(
                 Box::new(self.get_class().clone()),
                 self.get_scale(),
@@ -63,5 +78,8 @@ impl Drawable for Item {
     }
     fn get_layer(&self) -> u32 {
         self.layer
+    }
+    fn set_parent(&mut self, parent: (String, u32)) {
+        self.parent = Some(parent);
     }
 }

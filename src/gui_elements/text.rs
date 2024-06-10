@@ -1,33 +1,26 @@
-use crate::{texture_manager::TextureType, MainState, ORD_UI, TILE_SIZE};
+use crate::{renderer::Layer, texture_manager::TextureType, MainState, TILE_SIZE};
 
 use super::draw::Drawable;
 
 #[derive(Clone)]
 pub(crate) struct Text {
-    name: String,
     text: String,
     position: (i32, i32),
     scale: f32,
     fixed: bool,
     layer: u32,
+    parent: Option<(String, u32)>,
 }
 
 impl Text {
-    pub fn new(
-        name: String,
-        text: String,
-        position: (i32, i32),
-        scale: f32,
-        fixed: bool,
-        layer: u32,
-    ) -> Self {
+    pub fn new(text: String, position: (i32, i32), scale: f32, fixed: bool, layer: u32) -> Self {
         Self {
-            name,
             text,
             position,
             scale,
             fixed,
             layer,
+            parent: None,
         }
     }
     pub fn set_text(&mut self, text: String) {
@@ -45,24 +38,40 @@ impl Text {
     pub fn get_text(&self) -> String {
         self.text.clone()
     }
+    pub fn get_parent(&self) -> Option<(String, u32)> {
+        self.parent.clone()
+    }
 }
 
 impl Drawable for Text {
     fn draw(&self, state: &mut MainState) {
         let mut x = self.get_position().0;
         for c in self.text.chars() {
-            MainState::add_drawable(
-                &mut state.worlds,
+            state.scenes.push((
+                self.get_parent().unwrap().0.clone(),
+                self.get_parent().unwrap().1,
+                self.get_layer(),
+            ));
+
+            MainState::add_ui_element(
+                &mut state.ui_elements,
                 &state.sprite_table,
-                ORD_UI,
+                Layer::Ui(
+                    self.get_parent().unwrap().0,
+                    self.get_parent().unwrap().1,
+                    self.get_layer(),
+                ),
                 TextureType::FontCharater(c, self.scale, self.fixed),
                 x,
                 self.get_position().1,
             );
-            x += (TILE_SIZE as f32 * 0.5) as i32;
+            x += (TILE_SIZE as f32 * 0.5 - 0.5 * (self.scale - 1.0).abs()) as i32;
         }
     }
     fn get_layer(&self) -> u32 {
         self.layer
+    }
+    fn set_parent(&mut self, _parent: (String, u32)) {
+        self.parent = Option::Some(_parent)
     }
 }

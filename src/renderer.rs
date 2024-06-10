@@ -34,15 +34,19 @@ pub(crate) fn render_sprites(
                 if fixed {
                     screen_rect = Rect::from_center(
                         pos.0,
-                        sprite.region.width() + (TILE_SIZE as f32 * (scale - 1.0)) as u32,
-                        sprite.region.height() + (TILE_SIZE as f32 * (scale - 1.0)) as u32,
+                        (sprite.region.width() as i32 + (TILE_SIZE as f32 * (scale - 1.0)) as i32)
+                            as u32,
+                        (sprite.region.height() as i32 + (TILE_SIZE as f32 * (scale - 1.0)) as i32)
+                            as u32,
                     );
                 } else {
                     let screen_position = calculate_screen_position(pos.0, camera, canvas);
                     screen_rect = Rect::from_center(
                         screen_position,
-                        sprite.region.width() + (TILE_SIZE as f32 * (scale - 1.0)) as u32,
-                        sprite.region.height() + (TILE_SIZE as f32 * (scale - 1.0)) as u32,
+                        (sprite.region.width() as i32 + (TILE_SIZE as f32 * (scale - 1.0)) as i32)
+                            as u32,
+                        (sprite.region.height() as i32 + (TILE_SIZE as f32 * (scale - 1.0)) as i32)
+                            as u32,
                     );
                 }
 
@@ -158,3 +162,24 @@ pub(crate) fn calculate_map_coords(
     Point::new(tmp.x / (TILE_SIZE), tmp.y / (TILE_SIZE))
     //tmp
 }
+
+#[derive(Clone, Eq, Hash, PartialEq, Debug)]
+pub(crate) enum Layer {
+    Tiles,
+    Content,
+    Robot,
+    Weather,
+    OverlayHint,
+    OverlayHover,
+    Time,
+    Ui(String, u32, u32), // layer, sublayer
+}
+pub(crate) const RENDER_ORDER: [Layer; 7] = [
+    Layer::Tiles,
+    Layer::Content,
+    Layer::Robot,
+    Layer::Weather,
+    Layer::OverlayHint,
+    Layer::OverlayHover,
+    Layer::Time,
+];
