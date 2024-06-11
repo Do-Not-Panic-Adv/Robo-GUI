@@ -8,6 +8,8 @@
 - Esc: Quit the programm
 - Space: Toggle robot chase
 - R: Reset the screen offset
+- I: Open the backpack menu
+- M: Open the markers menu
 
 # Library information 
 The SDL2 bindings used require the original libraries to be installed manually, as the crates feature to perform this action automatically is not currently working.

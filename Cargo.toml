@@ -1,18 +1,14 @@
 [package]
 name = "robo_gui"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
-authors = ["thegavereguy"]
-#publish = ["kellnr"]
+authors = ["Enrico Dalla Cia"]
 include = ["/src/*", "/assets"]
 
-
 [dependencies]
-#robotics_lib = {git= "https://github.com/Advanced-Programming-2023/Robotic-Lib/", branch="master"}
-#robotics_lib = {path= "../Robotic-Lib"}
 robotics_lib = {registry = "kellnr"}
+#robotics_lib = {git= "ssh://git@github.com/Advanced-Programming-2023/Robotic-Lib.git", branch="master"}
 
-oxagaudiotool = {registry = "kellnr", version = "0.2"}
 
 specs = "0.20"
 specs-derive = "0.4"
@@ -21,5 +17,6 @@ rand="0.8.5"
 [dependencies.sdl2]
 version = "0.36"
 default-features = false
-features = ["image", "ttf"]
+features = ["image"]
+
 

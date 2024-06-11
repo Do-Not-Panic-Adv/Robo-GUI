@@ -1,7 +1,6 @@
 use crate::MainState;
 
 use super::draw::Drawable;
-use uuid::Uuid;
 
 pub(crate) struct Scene {
     name: String,
