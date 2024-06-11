@@ -9,7 +9,7 @@ use sdl2::{pixels::Color, rect::Rect};
 use crate::TILE_SIZE;
 
 const FONT_STRING: &str =
-    "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{|}~ ";
+    "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{|}~ \"";
 
 #[derive(Debug)]
 pub(crate) struct SpriteTable(pub HashMap<TextureType, Rect>);
@@ -42,7 +42,15 @@ impl SpriteTable {
                 TILE_SIZE as u32,
             ),
         );
-
+        self.0.insert(
+            TextureType::Content(Content::None),
+            Rect::new(
+                TILE_SIZE * 1,
+                TILE_SIZE * 4,
+                TILE_SIZE as u32,
+                TILE_SIZE as u32,
+            ),
+        );
         self.0.insert(
             TextureType::Content(Content::Rock(0)),
             Rect::new(
@@ -423,5 +431,60 @@ impl Eq for TextureType {}
 impl Hash for TextureType {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         core::mem::discriminant(self).hash(state);
+    }
+}
+
+pub(crate) fn get_texture_type_from_content(content: Content) -> TextureType {
+    // map content to texture type
+    match content {
+        Content::Bin(_) => TextureType::Content(Content::Bin(0..0)),
+        Content::Rock(_) => TextureType::Content(Content::Rock(0)),
+        Content::Tree(_) => TextureType::Content(Content::Tree(0)),
+        Content::Garbage(_) => TextureType::Content(Content::Garbage(0)),
+        Content::Fire => TextureType::Content(Content::Fire),
+        Content::Coin(_) => TextureType::Content(Content::Coin(0)),
+        Content::Crate(_) => TextureType::Content(Content::Crate(0..0)),
+        Content::Bank(_) => TextureType::Content(Content::Bank(0..0)),
+        Content::Water(_) => TextureType::Content(Content::Water(0)),
+        Content::Market(_) => TextureType::Content(Content::Market(0)),
+        Content::Fish(_) => TextureType::Content(Content::Fish(0)),
+        Content::Building => TextureType::Content(Content::Building),
+        Content::Bush(_) => TextureType::Content(Content::Bush(0)),
+        Content::JollyBlock(_) => TextureType::Content(Content::JollyBlock(0)),
+        Content::Scarecrow => TextureType::Content(Content::Scarecrow),
+        Content::None => TextureType::Content(Content::None),
+    }
+}
+// implements tostring for TextureType
+impl TextureType {
+    pub fn to_string(&self) -> String {
+        match self {
+            TextureType::Robot => "Robot".to_string(),
+            TextureType::Tile(tt) => format!("{:?}", tt),
+            TextureType::Content(c) => match *c {
+                Content::Bin(_) => "Bin".to_string(),
+                Content::Rock(_) => "Rock".to_string(),
+                Content::Tree(_) => "Tree".to_string(),
+                Content::Garbage(_) => "Garbage".to_string(),
+                Content::Fire => "Fire".to_string(),
+                Content::Coin(_) => "Coin".to_string(),
+                Content::Crate(_) => "Crate".to_string(),
+                Content::Bank(_) => "Bank".to_string(),
+                Content::Water(_) => "Water".to_string(),
+                Content::Market(_) => "Market".to_string(),
+                Content::Fish(_) => "Fish".to_string(),
+                Content::Building => "Building".to_string(),
+                Content::Bush(_) => "Bush".to_string(),
+                Content::JollyBlock(_) => "JollyBlock".to_string(),
+                Content::Scarecrow => "Scarecrow".to_string(),
+                Content::None => "None".to_string(),
+            },
+            TextureType::Overlay(ot) => format!("{:?}", ot),
+            TextureType::Time(dt) => format!("{:?}", dt),
+            TextureType::EnvCondition(wt) => format!("{:?}", wt),
+            TextureType::FontCharater(c, _, _) => format!("{:?}", c),
+            TextureType::Item(tt, _, _) => format!("{:?}", tt),
+            TextureType::Square((_, _), _, _, _) => "Square".to_string(),
+        }
     }
 }

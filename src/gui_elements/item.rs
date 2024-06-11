@@ -59,8 +59,8 @@ impl Drawable for Item {
             self.get_layer(),
         ));
 
-        MainState::add_drawable(
-            &mut state.worlds,
+        MainState::add_ui_element(
+            &mut state.ui_elements,
             &state.sprite_table,
             Layer::Ui(
                 self.get_parent().unwrap().0,

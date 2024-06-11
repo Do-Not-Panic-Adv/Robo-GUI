@@ -1,5 +1,6 @@
 use components::drawable_components::{Position, Sprite};
 use components::movement_components::Velocity;
+use gui_elements::menus::{Menu, MenuTypes};
 use gui_elements::scene::Scene;
 use gui_elements::square::Square;
 use gui_elements::text::Text;
@@ -21,7 +22,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::rect::{Point, Rect};
 use specs::{Builder, Dispatcher, DispatcherBuilder, World, WorldExt};
 
-use texture_manager::SpriteTable;
+use texture_manager::{get_texture_type_from_content, SpriteTable};
 
 use camera::Camera;
 
@@ -54,6 +55,8 @@ pub struct MainState<'window> {
     worlds: HashMap<Layer, World>,
     ui_elements: HashMap<(String, u32, u32), World>,
     tiles_world: Vec<Vec<Option<Tile>>>,
+    energy: u32,
+    backpack: Vec<(Content, u32)>,
     dispatcher: Dispatcher<'window, 'window>,
     sprite_table: SpriteTable,
     camera: Camera,
@@ -61,6 +64,7 @@ pub struct MainState<'window> {
     robot_speed: i32,
     framerate: u32,
     scenes: Vec<(String, u32, u32)>,
+    menus: Vec<Menu>,
 }
 
 impl<'window> MainState<'window> {
@@ -154,11 +158,16 @@ impl<'window> MainState<'window> {
         if robot_speed > 6 || robot_speed < 1 {
             return Err("speed has to be <= 6 and >= 1".to_string());
         }
+        let mut menus = Vec::new();
+        menus.push(Menu::new(MenuTypes::Inventory));
+        menus.push(Menu::new(MenuTypes::Markers));
 
         Ok(MainState {
             sdl_context,
             canvas,
             worlds,
+            energy: 0,
+            backpack: Vec::new(),
             ui_elements,
             dispatcher,
             texture_creator,
@@ -169,6 +178,7 @@ impl<'window> MainState<'window> {
             robot_speed,
             framerate: 60,
             scenes: Vec::new(),
+            menus,
         })
     }
     pub fn add_robot(&mut self, pos_x: usize, pos_y: usize) {
@@ -214,37 +224,6 @@ impl<'window> MainState<'window> {
         scena_zoom.add_element(Box::new(zoom_text.clone()));
         scena_zoom.draw(self);
 
-        // a scene with 3 random squares
-
-        MainState::clear_scene_by_name(self, "square".to_string());
-        let mut scene = Scene::new("square".to_string(), 2);
-
-        scene.add_element(Box::new(Square::new(
-            (200, 200),
-            (50, 50),
-            true,
-            false,
-            Color::RGBA(255, 0, 0, 50),
-            5,
-        )));
-        scene.add_element(Box::new(Square::new(
-            (300, 300),
-            (50, 50),
-            true,
-            false,
-            Color::RGB(0, 255, 0),
-            3,
-        )));
-        scene.add_element(Box::new(Square::new(
-            (400, 400),
-            (50, 50),
-            true,
-            false,
-            Color::RGB(0, 0, 255),
-            1,
-        )));
-        scene.draw(self);
-
         self.tiles_world = world.clone();
 
         let mut y = 0;
@@ -285,158 +264,16 @@ impl<'window> MainState<'window> {
                             y * TILE_SIZE,
                         );
 
-                        match &t.content {
-                            Content::None => {}
-                            Content::Rock(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Rock(0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-                            Content::Tree(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Tree(0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-                            Content::Garbage(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Garbage(0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-                            Content::Fire => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Fire),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-                            Content::Coin(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Coin(0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-                            Content::Bin(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Bin(0..0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-                            Content::Crate(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Crate(0..0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
+                        let content = get_texture_type_from_content(t.content.clone());
 
-                            Content::Bank(_) => {
+                        match content {
+                            TextureType::Content(Content::None) => {}
+                            _ => {
                                 MainState::add_drawable(
                                     &mut self.worlds,
                                     &self.sprite_table,
                                     Layer::Content,
-                                    TextureType::Content(Content::Bank(0..0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-
-                            Content::Water(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Water(0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-
-                            Content::Market(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Market(0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-                            Content::Fish(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Fish(0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-                            Content::Building => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Building),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-                            Content::Bush(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Bush(0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-
-                            Content::JollyBlock(_) => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::JollyBlock(0)),
-                                    x * TILE_SIZE,
-                                    y * TILE_SIZE,
-                                );
-                            }
-                            Content::Scarecrow => {
-                                MainState::add_drawable(
-                                    &mut self.worlds,
-                                    &self.sprite_table,
-                                    Layer::Content,
-                                    TextureType::Content(Content::Scarecrow),
+                                    content,
                                     x * TILE_SIZE,
                                     y * TILE_SIZE,
                                 );
@@ -496,6 +333,20 @@ impl<'window> MainState<'window> {
         );
         pos_scene.add_element(Box::new(pos_text));
         pos_scene.draw(self);
+
+        // let menus = self.menus.iter().collect::<Vec<_>>().clone();
+        // for menu in menus {
+        //     if menu.1.is_open {
+        //         menu.1.draw(self);
+        //     }
+        // }
+        let menus = self.menus.clone();
+        for menu in menus {
+            MainState::clear_scene_by_name(self, menu.get_menu_type().to_string());
+            if menu.is_open() {
+                menu.draw(self);
+            }
+        }
     }
     pub fn update_time_of_day(&mut self, time: DayTime) {
         let limits = self.get_drawable_indexes();
@@ -574,6 +425,32 @@ impl<'window> MainState<'window> {
                         if self.camera.zoom_level > -31 {
                             self.camera.zoom_level -= 1;
                         }
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::I),
+                        repeat: false,
+                        ..
+                    } => {
+                        let mut menus = self.menus.clone();
+                        for menu in menus.iter_mut() {
+                            if menu.get_menu_type() == MenuTypes::Inventory {
+                                menu.toggle();
+                            }
+                        }
+                        self.menus = menus;
+                    }
+                    Event::KeyDown {
+                        keycode: Some(Keycode::M),
+                        repeat: false,
+                        ..
+                    } => {
+                        let mut menus = self.menus.clone();
+                        for menu in menus.iter_mut() {
+                            if menu.get_menu_type() == MenuTypes::Markers {
+                                menu.toggle();
+                            }
+                        }
+                        self.menus = menus;
                     }
                     Event::KeyDown {
                         keycode: Some(Keycode::Left),
@@ -703,9 +580,8 @@ impl<'window> MainState<'window> {
                 );
             }
 
-            // render the ui elements sorted by layer
             let mut tmp = self.ui_elements.iter().collect::<Vec<_>>();
-            tmp.sort_by(|a, b| a.0.cmp(&b.0));
+            tmp.sort_by_key(|a| (a.0 .1, a.0 .2));
             //println!("{:?}", tmp.iter().map(|x| x.0).collect::<Vec<_>>());
 
             let elements = tmp.iter().map(|x| x.1).collect::<Vec<_>>();
@@ -832,5 +708,21 @@ impl<'window> MainState<'window> {
 
     pub(crate) fn camera(&self) -> &Camera {
         &self.camera
+    }
+    pub fn update_energy(&mut self, energy: u32) {
+        self.energy = energy;
+
+        MainState::clear_scene_by_name(self, "energy".to_string());
+        let mut energy_scene = Scene::new("energy".to_string(), 1);
+        let energy_text = Text::new(format!("Energy: {}", self.energy), (20, 220), 0.5, true, 1);
+        energy_scene.add_element(Box::new(energy_text));
+        energy_scene.draw(self);
+    }
+    pub fn update_backpack(&mut self, backpack: Vec<(Content, u32)>) {
+        self.backpack = backpack;
+        // MainState::clear_scene_by_name(self, "backpack".to_string());
+        // let mut backpack_scene = Scene::new("backpack".to_string(), 1);
+        //
+        // backpack_scene.draw(self);
     }
 }

@@ -65,7 +65,7 @@ impl Drawable for Text {
                 x,
                 self.get_position().1,
             );
-            x += (TILE_SIZE as f32 * 0.5 - 0.5 * (self.scale - 1.0).abs()) as i32;
+            x += (TILE_SIZE as f32 * 0.3 + (TILE_SIZE as f32 * 0.3 * self.scale - 1.0)) as i32;
         }
     }
     fn get_layer(&self) -> u32 {
